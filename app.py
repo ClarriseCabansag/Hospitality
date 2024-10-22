@@ -256,6 +256,4 @@ def process_change_passcode():
 
 
 if __name__ == "__main__":
-    with app.app_context():
-        migrate_passwords()  # Call the migration function
     app.run(debug=True)
