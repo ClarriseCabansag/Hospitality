@@ -10,35 +10,36 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 
 app = Flask(__name__)
-load_dotenv()
 app.config.from_object('config.Config')
 db.init_app(app)
 
 @app.route('/')
-#def login_page():
-   # return render_template('login.html')
-# @app.route('/login', methods=['POST'])
-#def login():
-   # data = request.get_json()
-    # username = data.get('username')
-    # passcode = data.get('passcode')
+def login_page():
+    return render_template('login.html')
 
-    #  # Passcode validation: must be between 4 and 6 digits
-    # if not (4 <= len(passcode) <= 6):
-    #    return jsonify({'message': 'Passcode must be between 4 and 6 digits'}), 400
 
-    #user = authenticate_user(username, passcode)
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    username = data.get('username')
+    passcode = data.get('passcode')
 
-    # if user:
-    #   session['user_id'] = user['id']  # Store user ID in session
-    #    session['role'] = user['role']   # Store user role in session
+    # Passcode validation: must be between 4 and 6 digits
+    if not (4 <= len(passcode) <= 6):
+        return jsonify({'message': 'Passcode must be between 4 and 6 digits'}), 400
+
+    user = authenticate_user(username, passcode)
+
+    if user:
+        session['user_id'] = user['id']  # Store user ID in session
+        session['role'] = user['role']   # Store user role in session
 
         # Create a token with the user dictionary
-    #   token = create_token(user)  # Generate the token for the user
+        token = create_token(user)  # Generate the token for the user
 
-       #  return jsonify({"user": user, "role": user['role'], "token": token}), 200
-   # else:
-     #   return jsonify({'message': 'Invalid Credentials'}), 401
+        return jsonify({"user": user, "role": user['role'], "token": token}), 200
+    else:
+        return jsonify({'message': 'Invalid Credentials'}), 401
 
 
 @app.route('/dashboard')
