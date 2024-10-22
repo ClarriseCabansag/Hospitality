@@ -21,6 +21,7 @@ document.getElementById('login-form').addEventListener('submit', function(event)
     const username = document.getElementById('username').value;
     const passcode = document.getElementById('passcode').value;
 
+    // Input validation
     if (passcode.trim() === '') {
         document.getElementById('error-message').innerText = 'Passcode is required.';
         return;
@@ -36,22 +37,21 @@ document.getElementById('login-form').addEventListener('submit', function(event)
         return;
     }
 
+    // Send login request
     fetch('/login', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json' // Ensure Content-Type is set to application/json
         },
-        body: JSON.stringify({ username, passcode })
+        body: JSON.stringify({ username, passcode }) // Convert to JSON
     })
     .then(response => {
-        console.log('Response:', response); // Log the full response for debugging
         if (!response.ok) {
             return response.json().then(data => {
-                console.log('Error data:', data); // Log error data for debugging
-                document.getElementById('error-message').innerText = data.message;
-                document.getElementById('username').value = '';
+                document.getElementById('error-message').innerText = data.message; // Show error message
+                document.getElementById('username').value = ''; // Clear fields
                 document.getElementById('passcode').value = '';
-                attempts++;
+                attempts++; // Increment attempts
 
                 // Check if maximum attempts reached
                 if (attempts >= maxAttempts) {
@@ -82,8 +82,8 @@ document.getElementById('login-form').addEventListener('submit', function(event)
             });
         }
 
+        // Handle successful login
         return response.json().then(data => {
-            console.log('Successful login data:', data); // Log successful login data
             const role = data.role;
             if (role === 'manager') {
                 window.location.href = '/managers';
@@ -93,7 +93,7 @@ document.getElementById('login-form').addEventListener('submit', function(event)
         });
     })
     .catch(error => {
-        console.error('Error:', error); // Log any errors that occur during fetch
+        console.error('Error:', error);
         document.getElementById('error-message').innerText = 'An error occurred. Please try again.';
     });
 });
