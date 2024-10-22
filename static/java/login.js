@@ -44,8 +44,10 @@ document.getElementById('login-form').addEventListener('submit', function(event)
         body: JSON.stringify({ username, passcode })
     })
     .then(response => {
+        console.log('Response:', response); // Log the full response for debugging
         if (!response.ok) {
             return response.json().then(data => {
+                console.log('Error data:', data); // Log error data for debugging
                 document.getElementById('error-message').innerText = data.message;
                 document.getElementById('username').value = '';
                 document.getElementById('passcode').value = '';
@@ -81,6 +83,7 @@ document.getElementById('login-form').addEventListener('submit', function(event)
         }
 
         return response.json().then(data => {
+            console.log('Successful login data:', data); // Log successful login data
             const role = data.role;
             if (role === 'manager') {
                 window.location.href = '/managers';
@@ -90,7 +93,7 @@ document.getElementById('login-form').addEventListener('submit', function(event)
         });
     })
     .catch(error => {
-        console.error('Error:', error);
+        console.error('Error:', error); // Log any errors that occur during fetch
         document.getElementById('error-message').innerText = 'An error occurred. Please try again.';
     });
 });
