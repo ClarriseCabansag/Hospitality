@@ -48,3 +48,4 @@ virtualenv==20.26.3
 Werkzeug==3.0.3
 wheel==0.44.0
 gunicorn
+psycopg2
