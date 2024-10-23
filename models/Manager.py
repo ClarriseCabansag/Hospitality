@@ -9,9 +9,3 @@ class Manager(db.Model):
     username = db.Column(db.String(15), nullable=False, unique=True)
     passcode = db.Column(db.String(255), nullable=False)
     date_created = db.Column(db.DateTime, default=db.func.current_timestamp())
-
-    def __init__(self, name, last_name, username, passcode):
-        self.name = name
-        self.last_name = last_name
-        self.username = username
-        self.passcode = passcode
