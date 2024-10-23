@@ -11,8 +11,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 app.config.from_object('config.Config')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgre_17_user:TOmuUalV9SI8K0uwzrornfb9WRNCWZon@dpg-cscfr356l47c73e0k7ag-a/postgre_17'
-db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 db.init_app(app)
 
