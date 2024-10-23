@@ -10,7 +10,7 @@ class Manager(db.Model):
     passcode = db.Column(db.String(255), nullable=False)
     date_created = db.Column(db.DateTime, default=db.func.current_timestamp())
 
- def __init__(self, name, last_name, username, passcode):
+    def __init__(self, name, last_name, username, passcode):
         self.name = name
         self.last_name = last_name
         self.username = username
