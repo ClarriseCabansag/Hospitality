@@ -1,0 +1,39 @@
+/* Summary.css */
+
+h2 {
+    margin-bottom: 20px;
+    margin-top: 20px;
+    font-weight: 600;
+    font-size: 50px;
+    font-family:'Poppins', sans-serif;
+    color:#d32f2f;
+}
+.cashier-summary {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.cashier-summary th, .cashier-summary td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+
+.cashier-summary th {
+    background-color: #C70039;
+    color: white;
+}
+
+.cashier-summary tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+.clickable-row {
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.clickable-row:hover {
+    background-color: #ddd;
+}
