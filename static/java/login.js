@@ -37,9 +37,12 @@ document.getElementById('login-form').addEventListener('submit', function(event)
         return;
     }
 
-    // Check for default manager credentials
+    // Check for default manager and cashier credentials
     if (username === 'klang' && passcode === '2001') {
         window.location.href = '/managers';
+        return;
+    } else if (username === 'klarissa' && passcode === '1630') {
+        window.location.href = '/sales_order';
         return;
     }
 
