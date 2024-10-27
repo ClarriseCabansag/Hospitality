@@ -1,4 +1,17 @@
-class Config:
-    SECRET_KEY = '0123'
-    SQLALCHEMY_DATABASE_URI = 'postgresql://postgre_17_user:TOmuUalV9SI8K0uwzrornfb9WRNCWZon@dpg-cscfr356l47c73e0k7ag-a/postgre_17'
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
+from flask import Flask
+from config import Config
+from flask_sqlalchemy import SQLAlchemy
+
+db = SQLAlchemy()
+
+
+def create_app():
+    app = Flask(__name__)
+    app.config.from_object(Config)
+
+    db.init_app(app)
+
+    with app.app_context():
+        db.create_all()  # This creates tables if they don't exist
+
+    return app
