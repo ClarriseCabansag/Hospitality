@@ -1,0 +1,353 @@
+/* Global Styles */
+body {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #fdf8ed;
+}
+
+.container {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.sidebar {
+    width: 100px;
+    background-color: #ffffff;
+    padding: 10px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    border-right: 1px solid #ddd;
+    transition: width 0.3s;
+    overflow: hidden;
+}
+
+.sidebar.expanded {
+    width: 250px;
+}
+
+.toggle-btn {
+    cursor: pointer;
+    padding: 10px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.toggle-btn i {
+    font-size: 20px;
+}
+
+.logo img {
+    width: 100%;
+    height: auto;
+}
+
+.menu {
+    list-style: none;
+    padding: 0;
+    margin: 3px 0;
+}
+
+.menu-item {
+    margin-bottom: 30px;
+    width: 150px;
+    text-align: center;
+}
+
+.menu-item a {
+    text-decoration: none;
+    color: #333;
+    font-size: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 15px 20px 15px 0;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.menu-item a:hover {
+    color: white; 
+    background-color: #c8131a; 
+}
+
+.menu-item a .menu-text {
+    display: none;
+    margin-left: 5px;
+    white-space: nowrap;
+}
+
+.sidebar.expanded .menu-item a {
+    justify-content: flex-start;
+    padding-left: 2px;
+}
+
+.sidebar.expanded .menu-item a .menu-text {
+    display: inline-block;
+}
+
+.settings {
+    margin-top: auto;
+    padding-bottom: 20px;
+    width: 85%;
+}
+
+.settings a {
+    color: #333;
+    font-size: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 15px 0;
+    border-radius: 10px;
+    transition: background-color 0.3s ease;
+    width: 90%;
+}
+
+.sidebar.expanded .settings a {
+    justify-content: flex-start;
+    padding-left: 20px;
+}
+
+.settings a .menu-text {
+    display: none;
+    margin-left: 10px;
+}
+
+.sidebar.expanded .settings a .menu-text {
+    display: inline-block;
+}
+
+.settings a:hover {
+    background-color: #c8131a;
+}
+
+.settings a.active {
+    background-color: #c8131a;
+    color: #fff;
+}
+
+/* Payment Content */
+.payment-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.payment-header {
+    text-align: left;
+    padding: 10px;
+    border-bottom: 2px solid #c8131a; /* Maroon color */
+    margin-bottom: 20px;
+}
+
+.payment-header h1 {
+    color: #c8131a; /* Your specified color */
+    font-family: poppins, sans-serif;
+    font-size: 30px;
+}
+
+.payment-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: nowrap; /* Prevent wrapping */
+}
+
+.order-summary {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    padding: 20px;
+    width: 65%;
+    display: flex;
+    flex-direction: column;
+}
+
+.order-summary h2 {
+    margin-bottom: 15px;
+    font-size: 22px;
+    color: #c8131a;
+}
+
+.order-summary .order-info {
+    display: flex;
+    justify-content: space-between; /* Aligns items to the ends of the container */
+    margin-bottom: 10px;
+}
+
+.order-summary .order-item {
+    display: flex;
+    justify-content: space-between; /* Aligns items to the ends of the container */
+    margin-bottom: 10px;
+}
+
+.order-summary .order-totals {
+    display: flex;
+    flex-direction: column; /* Stacks items vertically */
+    margin-bottom: 10px;
+}
+
+.order-summary .order-totals div {
+    display: flex;
+    justify-content: space-between; /* Aligns items to the ends of the container */
+}
+
+.summary-container {
+    display: flex;
+    flex-direction: column;
+    width: 30%;
+    flex-shrink: 0; /* Prevent shrinking */
+}
+
+.discount-summary, .payment-method {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    padding: 20px;
+    margin-bottom: 20px;
+    flex: 1; /* Ensure both sections use available space */
+}
+
+.discount-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.discount-header h2 {
+    margin: 0;
+    font-size: 22px;
+    color: #c8131a;
+    line-height: 1.5; /* Ensure consistent vertical alignment */
+}
+
+.discount-type {
+    font-size: 22px; /* Same size as h2 */
+    font-weight: bold;
+    margin: 0;
+    line-height: 1.5; /* Ensure consistent vertical alignment */
+    margin-top: -8px; /* Adjust this value to align vertically */
+}
+
+.payment-method {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    padding: 20px;
+}
+
+.payment-method h2 {
+    margin-bottom: 15px;
+    font-size: 22px;
+    color: #c8131a;
+}
+
+.payment-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-top: 20px;
+    background-color: #fdf8ed;
+    padding: 10px;
+    align-items: flex-end; /* Align items to the end (right side) */
+}
+
+.payment-summary p {
+    display: flex;
+    justify-content: space-between;
+    margin: 0;
+    font-weight: bold; /* Make text bold for total and cash */
+    width: 100%; /* Ensure the paragraph takes full width */
+}
+
+.payment-summary .amount {
+    text-align: right; /* Align text to the right */
+    width: 100%; /* Ensure the amount takes full width of the container */
+}
+
+.confirm-btn {
+    width: 100%;
+    background-color: #c8131a;
+    color: #fff;
+    border: none;
+    padding: 10px;
+    margin-top: 10px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.confirm-btn:hover {
+    background-color: #a70f16;
+}
+
+.tabs {
+    display: flex;
+    margin-bottom: 10px;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 10px;
+    background-color: #fdf8ed;
+    border: 1px solid #ddd;
+    border-radius: 5px 5px 0 0;
+    cursor: pointer;
+    font-size: 16px;
+    color: #c8131a;
+    text-align: center;
+}
+
+.tab-btn.active {
+    background-color: #c8131a;
+    color: #fff;
+}
+
+.payment-input {
+    margin-bottom: 20px;
+}
+
+.payment-input input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+.payment-actions {
+    display: flex;
+    justify-content: space-between;
+}
+
+.cancel-btn, .add-btn {
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 16px;
+    width: 48%;
+}
+
+.cancel-btn {
+    background-color: #ddd;
+    color: #333;
+}
+
+.add-btn {
+    background-color: #c8131a;
+    color: #fff;
+}
+
+.cancel-btn:hover {
+    background-color: #bbb;
+}
+
+.add-btn:hover {
+    background-color: #a70f16;
+}

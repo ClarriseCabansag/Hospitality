@@ -1,0 +1,98 @@
+{% extends "dashboard.html" %}
+
+{% block title %}Order History{% endblock %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/order.css') }}">
+{% endblock %}
+
+{% block content %}
+    <div class="header">
+    <div class="title">Order History</div>
+    </div>
+       
+    <div class="tabs">
+        <button class="tab-link active" data-tab="orderHistory">Order History</button>
+        <button class="tab-link" data-tab="orderOnHold">Order on Hold</button>
+        <div class="filters">
+            <div class="filter-item">
+                <label for="dateFilter">Date:</label>
+                <select id="dateFilter">
+                    <option value="">Select Date</option>
+                    <!-- Options will be dynamically populated -->
+                </select>
+            </div>
+            <div class="filter-item">
+                <label for="statusFilter">Status:</label>
+                <select id="statusFilter">
+                    <option value="">Select Status</option>
+                    <option value="Complete">Complete</option>
+                    <option value="Refund">Refund</option>
+                    <!-- Add other status options as needed -->
+                </select>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Table Header Row -->
+    <div class="order-list-header">
+        <div>Order ID</div>
+        <div>Order Details</div>
+        <div>Date</div>
+        <div>Time</div>
+        <div>Order Type</div>
+        <div>Order Status</div>
+        <div>Amount</div>
+    </div>
+    
+    <ul class="order-list" id="orderList">
+        <!-- Sample Order Items -->
+        <li class="order-item">
+            <div>#12345</div>
+            <div>Widget A, Widget B</div>
+            <div class="date">2023-08-15</div>
+            <div>10:30 AM</div>
+            <div>Online</div>
+            <div class="status">Complete</div>
+            <div>$150.00</div>
+        </li>
+        <li class="order-item">
+            <div>#12346</div>
+            <div>Widget C</div>
+            <div class="date">2023-08-16</div>
+            <div>11:00 AM</div>
+            <div>In-Store</div>
+            <div class="status">Refund</div>
+            <div>$75.00</div>
+        </li>
+    </ul>
+
+    <div id="orderOnHold" class="tab-content">
+        <!-- On Hold Orders -->
+        <div class="order-list-header">
+            <div>Order ID</div>
+            <div>Order Details</div>
+            <div>Date</div>
+            <div>Time</div>
+            <div>Order Type</div>
+            <div>Order Status</div>
+            <div>Amount</div>
+        </div>
+        <ul class="order-list">
+            <!-- On Hold Order Items -->
+            <li class="order-item">
+                <div>#12347</div>
+                <div>Widget D</div>
+                <div class="date">2023-08-17</div>
+                <div>11:30 AM</div>
+                <div>In-Store</div>
+                <div class="status">On Hold</div>
+                <div>$200.00</div>
+            </li>
+        </ul>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script src="{{ url_for('static', filename='java/order.js') }}"></script>
+{% endblock %}
