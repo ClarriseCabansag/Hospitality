@@ -269,7 +269,6 @@ def process_change_passcode():
 
 if __name__ == "__main__":
     with app.app_context():
-        from . import models
         db.create_all()  # Creates tables if they don't exist
         migrate_passwords()  # Call the migration function
     app.run(debug=True)
