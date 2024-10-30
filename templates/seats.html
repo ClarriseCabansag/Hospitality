@@ -1,0 +1,95 @@
+{% extends "dashboard.html" %}
+
+{% block title %}Tables{% endblock %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/seats.css') }}">
+{% endblock %}
+
+{% block js %}
+    <script src="{{ url_for('static', filename='java/seat.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+    <h1>Tables</h1>
+    <div class="key">
+        <div class="key-item"><span class="available"></span>Available</div>
+        <div class="key-item"><span class="occupied"></span>Occupied</div>
+    </div>
+    <div class="wrapper">
+        <div class="table-container">
+            <button class="table" data-label="01">
+                <img class="seatImage" src="{{ url_for('static', filename='img/seat2.png') }}" alt="seat1">
+            </button>
+            <button class="table" data-label="02">
+                <img class="seatImage" src="{{ url_for('static', filename='img/seat2.png') }}" alt="seat2">
+            </button>
+            <button class="table" data-label="03">
+                <img class="seatImage" src="{{ url_for('static', filename='img/seat2.png') }}" alt="seat3">
+            </button>
+            <button class="table" data-label="04">
+                <img class="seatImage" src="{{ url_for('static', filename='img/seat2.png') }}" alt="seat4">
+            </button>
+            <button class="table" data-label="05">
+                <img class="seatImage" src="{{ url_for('static', filename='img/seat3.png') }}" alt="seat5">
+            </button>
+            <button class="table" data-label="06">
+                <img class="seatImage" src="{{ url_for('static', filename='img/seat3.png') }}" alt="seat6">
+            </button>
+            <button class="table" data-label="07">
+                <img class="seatImage" src="{{ url_for('static', filename='img/seat3.png') }}" alt="seat7">
+            </button>
+            <button class="table" data-label="08">
+                <img class="seatImage" src="{{ url_for('static', filename='img/seat3.png') }}" alt="seat8">
+            </button>
+            <button class="table" data-label="09">
+                <img class="seatImage" src="{{ url_for('static', filename='img/seat3.png') }}" alt="seat9">
+            </button>
+            <button class="table" data-label="10">
+                <img class="seatImage" src="{{ url_for('static', filename='img/seat3.png') }}" alt="seat10">
+            </button>
+            <button class="table" data-label="11">
+                <img class="seatImage" src="{{ url_for('static', filename='img/seat3.png') }}" alt="seat11">
+            </button>
+            <button class="table" data-label="12">
+                <img class="seatImage" src="{{ url_for('static', filename='img/seat3.png') }}" alt="seat12">
+            </button>
+            <button class="table" data-label="13">
+                <img class="seatImage" src="{{ url_for('static', filename='img/seat3.png') }}" alt="seat13">
+            </button>
+            <button class="table" data-label="14">
+                <img class="seatImage" src="{{ url_for('static', filename='img/seat3.png') }}" alt="seat14">
+            </button>    
+            <button class="table" data-label="15">
+                <img class="seatImage" src="{{ url_for('static', filename='img/seat3.png') }}" alt="seat15">
+            </button>
+            <button class="table" data-label="16">
+                <img class="seatImage" src="{{ url_for('static', filename='img/seat3.png') }}" alt="seat16">
+            </button>
+            <button class="table" data-label="17">
+                <img class="seatImage" src="{{ url_for('static', filename='img/seat3.png') }}" alt="seat17">
+            </button>
+            <button class="table" data-label="18">
+                <img class="seatImage" src="{{ url_for('static', filename='img/seat3.png') }}" alt="seat18">
+            </button>
+        </div>
+    </div>
+    <div id="popupContainer" style="display: none;">
+        <div class="popup-content">
+            <div class="popup-header">
+                <i class="fas fa-users"></i>
+                <span>Enter Guest Count:</span>
+            </div>
+            <input type="number" id="guestCount" placeholder="Enter guest count">
+            <div class="popup-buttons">
+                <button type="button" id="cancelButton" class="cancel-btn">Cancel</button>
+                <button type="button" id="saveButton" class="save-btn">Save</button>
+            </div>
+        </div>
+    </div>
+
+
+
+{% endblock %}
+
+
