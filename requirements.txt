@@ -36,7 +36,7 @@ ptyprocess==0.7.0
 Pygments==2.18.0
 PyJWT==2.9.0
 PyMySQL==1.1.1
-pypiwin32==223
+pywin32>=223; platform_system == "Windows"
 pywin32==306; platform_system == "Windows"
 requests==2.32.3
 setuptools==72.1.0
