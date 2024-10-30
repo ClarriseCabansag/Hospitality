@@ -1,5 +1,4 @@
-from services.database import db
-
+from services.database import db  
 class Manager(db.Model):
     __tablename__ = 'managers'
 
