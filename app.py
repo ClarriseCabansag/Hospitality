@@ -5,6 +5,7 @@ from services.auth import authenticate_user, migrate_passwords
 from services.token_service import create_token, decode_token
 from services.database import db
 from sqlalchemy import inspect
+from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from werkzeug.security import generate_password_hash, check_password_hash
 
