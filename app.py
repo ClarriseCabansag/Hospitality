@@ -1,24 +1,20 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import inspect
+from werkzeug.security import generate_password_hash, check_password_hash
 from models.Cashier import Cashier
 from models.Manager import Manager
 from services.auth import authenticate_user, migrate_passwords
 from services.token_service import create_token, decode_token
-from services.database import db
-from sqlalchemy import inspect
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-from werkzeug.security import generate_password_hash, check_password_hash
+import os
 
 
-# App configuration
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '0123'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgre_17_user:TOmuUalV9SI8K0uwzrornfb9WRNCWZon@dpg-cscfr356l47c73e0k7ag-a/postgre_17'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:1630@localhost:5432/POS'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Initialize database
 db = SQLAlchemy(app)
-migrate = Migrate(app, db)
 
 
 @app.route('/')
@@ -82,10 +78,8 @@ def protected_api():  # Renamed the function to avoid conflict
 @app.route('/test-db')
 def test_db_connection():
     try:
-        # Create an inspector to get table names
         inspector = inspect(db.engine)
         tables = inspector.get_table_names()
-
         if tables:
             return jsonify({"message": "Database connection successful!", "tables": tables}), 200
         else:
@@ -93,17 +87,21 @@ def test_db_connection():
     except Exception as e:
         return jsonify({"message": f"Error connecting to database: {str(e)}"}), 500
 
+
 @app.route('/managers')
 def managers():
     return render_template('managers.html')
+
 
 @app.route('/dashboard')
 def cashier_dashboard():
     return render_template('dashboard.html')
 
+
 @app.route('/sales_order')
 def sales_order():
     return render_template('sales_order.html')
+
 
 @app.route('/get_cashier_name', methods=['GET'])
 def get_cashier_name():
@@ -116,25 +114,31 @@ def get_cashier_name():
             }), 200
     return jsonify({"message": "Not authenticated"}), 401
 
+
 @app.route('/seats')
 def seats():
-    return render_template('seats.html')  # Ensure you have a corresponding HTML template
+    return render_template('seats.html')
+
 
 @app.route('/payment')
 def payment():
-    return render_template('payment.html')  # Ensure this template exists
+    return render_template('payment.html')
+
 
 @app.route('/order_history')
 def order_history():
-    return render_template('order_history.html')  # Ensure this template exists
+    return render_template('order_history.html')
+
 
 @app.route('/manager_dashboard')
 def manager_dashboard():
-    return render_template('managers.html')  # Ensure this template exists
+    return render_template('managers.html')
+
 
 @app.route('/profile_management')
 def profile_management():
-    return render_template('profile_management.html')  # Ensure this template exists
+    return render_template('profile_management.html')
+
 
 @app.route('/create_cashier', methods=['POST'])
 def create_cashier():
@@ -144,16 +148,13 @@ def create_cashier():
     username = data.get('username')
     passcode = data.get('passcode')
 
-    # Check for missing fields
     if not name or not last_name or not username or not passcode:
         return jsonify({"success": False, "message": "Missing required fields"}), 400
 
-    # Ensure that a cashier with the same username does not already exist
     if Cashier.query.filter_by(username=username).first():
         return jsonify({"message": "Username already exists", "success": False}), 400
 
     try:
-        # Create a new cashier object and add to the database
         new_cashier = Cashier(name=name, last_name=last_name, username=username, passcode=passcode)
         db.session.add(new_cashier)
         db.session.commit()
@@ -170,6 +171,7 @@ def create_cashier():
         db.session.rollback()
         return jsonify({"message": f"Failed to save cashier: {str(e)}", "success": False}), 500
 
+
 @app.route('/get_cashiers', methods=['GET'])
 def get_cashiers():
     cashiers = Cashier.query.all()
@@ -184,6 +186,7 @@ def get_cashiers():
         } for cashier in cashiers
     ]}), 200
 
+
 @app.route('/edit_cashier/<int:cashier_id>', methods=['PUT'])
 def edit_cashier(cashier_id):
     data = request.json
@@ -192,12 +195,10 @@ def edit_cashier(cashier_id):
     username = data.get('username')
     passcode = data.get('passcode')
 
-    # Ensure that a cashier exists
-    cashier = session.get(Cashier, session['user_id'])
+    cashier = Cashier.query.get(cashier_id)
     if not cashier:
         return jsonify({"message": "Cashier not found", "success": False}), 404
 
-    # Update the cashier's details
     cashier.name = name
     cashier.last_name = last_name
     cashier.username = username
@@ -213,6 +214,7 @@ def edit_cashier(cashier_id):
         "date_created": cashier.date_created
     }}), 200
 
+
 @app.route('/delete_cashier/<int:cashier_id>', methods=['DELETE'])
 def delete_cashier(cashier_id):
     cashier = Cashier.query.get(cashier_id)
@@ -225,19 +227,19 @@ def delete_cashier(cashier_id):
 
 @app.route('/inventory_management')
 def inventory_management():
-    return render_template('inventory_management.html')  # Ensure this template exists
+    return render_template('inventory_management.html')
+
 
 @app.route('/cashier_summary')
 def cashier_summary():
-    return render_template('cashier_summary.html')  # Ensure this template exists
-
+    return render_template('cashier_summary.html')
 
 
 @app.route('/logout')
 def logout():
-    # Clear the user session
     session.clear()
     return redirect(url_for('login_page'))
+
 
 @app.route('/change_passcode', methods=['POST'])
 def process_change_passcode():
@@ -251,21 +253,13 @@ def process_change_passcode():
     if not user_id:
         return jsonify({"message": "User not logged in", "success": False}), 400
 
-    if user_role == 'cashier':
-        user = Cashier.query.get(user_id)
-    elif user_role == 'manager':
-        user = Manager.query.get(user_id)
-    else:
-        return jsonify({"message": "Invalid role", "success": False}), 400
-
+    user = Cashier.query.get(user_id) if user_role == 'cashier' else Manager.query.get(user_id)
     if not user:
         return jsonify({"message": "User not found", "success": False}), 404
 
-    # Directly compare the old passcode
     if user.passcode != old_passcode:
         return jsonify({"message": "Old passcode is incorrect", "success": False}), 400
 
-    # Update the user's passcode directly
     user.passcode = new_passcode
     db.session.commit()
 
@@ -274,5 +268,6 @@ def process_change_passcode():
 
 if __name__ == "__main__":
     with app.app_context():
+        db.create_all()  # Creates tables if they don't exist
         migrate_passwords()  # Call the migration function
     app.run(debug=True)
