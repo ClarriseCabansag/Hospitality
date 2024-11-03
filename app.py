@@ -90,6 +90,38 @@ def test_db_connection():
 def managers():
     return render_template('managers.html')
 
+@app.route('/create_manager', methods=['POST'])
+def create_manager():
+    data = request.json
+    name = data.get('name')
+    last_name = data.get('last_name')
+    username = data.get('username')
+    passcode = data.get('passcode')
+
+    if not name or not last_name or not username or not passcode:
+        return jsonify({"success": False, "message": "Missing required fields"}), 400
+
+    if Manager.query.filter_by(username=username).first():
+        return jsonify({"message": "Username already exists", "success": False}), 400
+
+    try:
+        new_manager = Manager(name=name, last_name=last_name, username=username, passcode=passcode)
+        db.session.add(new_manager)
+        db.session.commit()
+
+        return jsonify({"message": "Manager created successfully", "success": True, "manager": {
+            "id": new_manager.id,
+            "name": new_manager.name,
+            "last_name": new_manager.last_name,
+            "username": new_manager.username,
+            "passcode": new_manager.passcode,
+            "date_created": new_manager.date_created
+        }}), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"message": f"Failed to save manager: {str(e)}", "success": False}), 500
+
+
 @app.route('/sales_order')
 def sales_order():
     return render_template('sales_order.html')
