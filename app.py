@@ -47,9 +47,6 @@ def login():
     else:
         return jsonify({'message': 'Invalid Credentials'}), 401
 
-@app.route('/dashboard')
-def dashboard():
-    return render_template('dashboard.html')
 
 @app.route('/protected', methods=['GET'])
 def protected_api():
@@ -86,9 +83,6 @@ def test_db_connection():
     except Exception as e:
         return jsonify({"message": f"Error connecting to database: {str(e)}"}), 500
 
-@app.route('/managers')
-def managers():
-    return render_template('managers.html')
 
 @app.route('/create_manager', methods=['POST'])
 def create_manager():
@@ -121,7 +115,6 @@ def create_manager():
         db.session.rollback()
         return jsonify({"message": f"Failed to save manager: {str(e)}", "success": False}), 500
 
-
 @app.route('/sales_order')
 def sales_order():
     return render_template('sales_order.html')
@@ -149,7 +142,7 @@ def payment():
 def order_history():
     return render_template('order_history.html')
 
-@app.route('/manager_dashboard')
+@app.route('/managers')
 def manager_dashboard():
     return render_template('managers.html')
 
