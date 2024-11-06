@@ -242,7 +242,7 @@ def cashier_summary():
 @app.route('/logout')
 def logout():
     session.clear()
-    return redirect(url_for('login_page'))
+    return redirect(url_for('http://127.0.0.1:5000'))
 
 @app.route('/change_passcode', methods=['POST'])
 def process_change_passcode():
