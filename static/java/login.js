@@ -85,7 +85,7 @@ document.getElementById('login-form').addEventListener('submit', function(event)
             if (role === 'manager') {
                 window.location.href = '/managers';
             } else if (role === 'cashier') {
-                window.location.href = '/sales_order';
+                window.location.href = '/profile_management';
             }
         });
     })
