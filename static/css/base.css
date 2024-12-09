@@ -1,0 +1,177 @@
+/* Import Google font - Poppins */
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap");
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
+:root {
+  --white-color: #fff;
+  --red-color: #c8131a;
+  --black-color: #000;
+  --grey-color: #525252;
+  --grey-color-light: #aaa;
+}
+body {
+  background-color: #fdf8ed !important;
+  transition: all 0.5s ease !important;
+}
+
+.logo_container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.logo_container img {
+  max-width: 100%; /* Adjust size as needed */
+  height: auto;
+}
+
+/* sidebar */
+.ps_sidebar {
+  background-color: var(--white-color);
+  width: 310px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  z-index: 100;
+  overflow-y: scroll;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.5s ease;
+}
+.ps_sidebar::-webkit-scrollbar {
+  display: none;
+}
+.menu_wrapper {
+  padding: 20px; /* Add padding specifically for the content inside */
+  margin-bottom: 2rem;
+}
+.menu_content {
+  position: relative;
+}
+.menu_title {
+  margin: 15px 0;
+  padding: 0 20px;
+  font-size: 18px;
+}
+.menu_dahsboard::before {
+  color: var(--red-color);
+  content: "Overview";
+  font-weight: 500;
+}
+.menu_ledger::before {
+  color: var(--red-color);
+  content: "Settings";
+  font-weight: 500;
+}
+.menu_items {
+  padding: 0;
+  list-style: none;
+}
+.navlink_icon {
+  position: relative;
+  font-size: 22px;
+  min-width: 50px;
+  line-height: 40px;
+  display: inline-block;
+  text-align: center;
+  border-radius: 6px;
+}
+.navlink_icon::before {
+  content: "";
+  position: absolute;
+  height: 100%;
+  width: calc(100% + 100px);
+  left: -20px;
+}
+.navlink_icon:hover {
+  background: var(--red-color);
+}
+.ps_sidebar .nav_link {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 4px 15px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--black-color);
+  white-space: nowrap;
+}
+.nav_link:hover {
+  color: var(--white-color);
+  background: var(--red-color);
+}
+.submenu_item {
+  cursor: pointer;
+}
+.submenu {
+  max-height: 0; /* Initially collapsed */
+  overflow: hidden;
+  margin-left: 0.9rem;
+  opacity: 0;
+  transition: max-height 0.4s ease, opacity 0.4s ease;
+}
+.submenu.show {
+  max-height: 300px; /* Max height large enough to accommodate submenu items */
+  opacity: 1;
+}
+.submenu_item .arrow-left {
+  position: absolute;
+  right: 10px;
+  font-size: 22px;
+  display: inline-block;
+  margin-right: auto;
+  transition: transform 0.3s ease; /* Add smooth transition */
+}
+.submenu_item .arrow-left {
+  transform: rotate(0deg);
+}
+
+.submenu_item .arrow-left.rotate {
+  transform: rotate(90deg); /* Rotate 270 degrees to point upwards */
+}
+
+.submenu .sublink {
+  padding: 15px 15px 15px 52px;
+}
+
+/* Logout button fixed at the bottom */
+.logout_button {
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.05);
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 310px; /* Match sidebar width */
+  z-index: 101;
+}
+
+.logout_button .nav_link {
+  background-color: var(--red-color);
+  color: var(--white-color);
+  padding: 5px 35px;
+  width: 100%;
+  border-radius: 0;
+}
+
+.logout_button .nav_link:hover {
+  background-color: #a30f14;
+}
+
+.logout_button .navlink_icon:hover {
+  background-color: #a30f14;
+}
+
+.main_content_wrapper {
+  margin-left: 300px; /* Adjust for sidebar width */
+  min-height: 100vh; /* Ensure the content area covers the full height */
+}
+
+p {
+  color: var(--black-color);
+}
+
+
+
