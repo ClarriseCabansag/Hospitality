@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}User Dashboard{% endblock %}</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/logo.png') }}">
+
+    <!-- CSS styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+
+    <!-- Boxicons CSS -->
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+
+    <!-- Fontawesome Link -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/v/bs5/jq-3.7.0/jszip-3.10.1/dt-2.1.7/b-3.1.2/b-html5-3.1.2/b-print-3.1.2/fh-4.0.1/kt-2.12.1/r-3.0.3/sl-2.1.0/sr-1.4.1/datatables.min.css">
+
+    {% block head %}{% endblock %}
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <div class="ps_sidebar">
+        <div class="logo_container">
+            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo">
+        </div>
+
+        <ul class="menu_items">
+            <!-- Dashboard -->
+            <li class="item">
+                <a href="{{ url_for('dashboard1') }}" class="nav_link">
+                    <span class="navlink_icon"><i class="fa-solid fa-chart-line"></i></span>
+                    <span class="navlink">Dashboard</span>
+                </a>
+            </li>
+            <!-- Financial Tracking -->
+            <li class="item">
+                <div class="nav_link submenu_item">
+                    <span class="navlink_icon"><i class="fa-solid fa-cash-register"></i></span>
+                    <span class="navlink">Point of Sales</span>
+                    <i class="bx bx-chevron-right arrow-left"></i>
+                </div>
+                <ul class="menu_items submenu">
+                    <a href="https://hospitality-2.onrender.com/sales_order" class="nav_link sublink">POS Cashier</a>
+                    <a href="https://hospitality-2.onrender.com/managers" class="nav_link sublink" >POS Manager</a>
+                </ul>
+            </li>
+            <!-- Material Management -->
+            <li class="item">
+                <a href="https://material-management-system-2.onrender.com" class="nav_link">
+                    <span class="navlink_icon"><i class="fa-solid fa-boxes-stacked"></i></span>
+                    <span class="navlink">Material Management</span>
+                </a>
+            </li>
+            <!-- Finance Management -->
+            <li class="item">
+                <a href="https://hospitality-fms.onrender.com/fms/expense_tracking" class="nav_link">
+                    <span class="navlink_icon"><i class="fa-solid fa-money-check-dollar"></i></span>
+                    <span class="navlink">Finance Management</span>
+                </a>
+            </li>
+            <!-- User Management -->
+            <li class="item">
+                <a href="{{ url_for('user_management') }}" class="nav_link">
+                    <span class="navlink_icon"><i class="fa-solid fa-user-tie"></i></span>
+                    <span class="navlink">User Management</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="logout_button">
+            <a href="{{ url_for('logout') }}" class="nav_link">
+                <span class="navlink_icon"><i class="fa-solid fa-right-from-bracket"></i></span>
+                <span class="navlink">Log Out</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main content wrapper -->
+    <div class="main_content_wrapper">
+        <div class="main_content">
+            {% block content %}
+                <!-- Move the content of um_tab_panel.html here -->
+                <div class="container">
+                    <ul class="nav nav-tabs custom_tabs">
+                        <li class="nav-item">
+                            <a href="#manage_users" class="nav-link active" id="manage_users_tab" data-bs-toggle="tab">
+                                <i class="fa-solid fa-user-group"></i> Manage Users
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#manage_user_levels" class="nav-link" id="manage_user_levels_tab" data-bs-toggle="tab">
+                                <i class="fa-solid fa-user-tag"></i> Manage User Levels
+                            </a>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content pt-3">
+                        <div class="tab-pane fade show active" id="manage_users" role="tabpanel" aria-labelledby="manage_users_tab">
+                            {% include 'user_management/um_tables/manage_users.html' %}
+                        </div>
+                        <div class="tab-pane fade" id="manage_user_levels" role="tabpanel" aria-labelledby="manage_user_levels_tab">
+                            {% include 'user_management/um_tables/manage_user_levels.html' %}
+                        </div>
+                    </div>
+                </div>
+            {% endblock %}
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='java/main.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/v/bs5/jq-3.7.0/jszip-3.10.1/dt-2.1.7/b-3.1.2/b-html5-3.1.2/b-print-3.1.2/fh-4.0.1/kt-2.12.1/r-3.0.3/sl-2.1.0/sr-1.4.1/datatables.min.js"></script>
+
+    <!-- Additional Scripts -->
+    <script src="{{ url_for('static', filename='java/tab_panel.js') }}"></script>
+    <script src="{{ url_for('static', filename='java/utils.js') }}"></script>
+    <script src="{{ url_for('static', filename='java/validation.js') }}"></script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

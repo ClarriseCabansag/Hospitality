@@ -28,43 +28,15 @@
     </section>
 
 
-    <section class="menu-items-container">
-        <section class="menu-items" id="solo-boodle-flight">
-            <h2>Solo Boodle Flight</h2>
-            <div class="menu-grid">
-                <div class="menu-item" data-category="solo-boodle-flight">
-                    <img src="{{ url_for('static', filename='img/soloflight/solo1.png') }}" alt="solo1">
-                    <p>FLT 001</p>
-                    <span>₱299.00</span>
-                </div>
-                <div class="menu-item" data-category="solo-boodle-flight">
-                    <img src="{{ url_for('static', filename='img/soloflight/solo2.jpg') }}" alt="solo2">
-                    <p>FLT 002</p>
-                    <span>₱299.00</span>
-                </div>
-                <div class="menu-item" data-category="solo-boodle-flight">
-                    <img src="{{ url_for('static', filename='img/soloflight/solo3.jpg') }}" alt="solo3">
-                    <p>FLT 003</p>
-                    <span>₱299.00</span>
-                </div>
-                <div class="menu-item" data-category="solo-boodle-flight">
-                    <img src="{{ url_for('static', filename='img/soloflight/solo4.jpg') }}" alt="solo4">
-                    <p>FLT 004</p>
-                    <span>₱299.00</span>
-                </div>
-                <div class="menu-item" data-category="solo-boodle-flight">
-                    <img src="{{ url_for('static', filename='img/soloflight/solo5.jpg') }}" alt="solo5">
-                    <p>FLT 005</p>
-                    <span>₱299.00</span>
-                </div>
-                <div class="menu-item" data-category="solo-boodle-flight">
-                    <img src="{{ url_for('static', filename='img/soloflight/solo6.jpg') }}" alt="solo6">
-                    <p>FLT✈︎006</p>
-                    <span>₱299.00</span>
-                </div>
-            </div>
-            </section>
+<section class="menu-items-container">
+    <section class="menu-items" id="solo-boodle-flight">
+        <h2>Solo Boodle Flight</h2>
+        <div class="menu-grid" id="menu-grid-solo"></div>
     </section>
+</section>
+
+
+
             <section class="menu-items-container">
                 <section class="menu-items" id="boodle-flights">
                     <h2>Boodle Flights</h2>
@@ -293,32 +265,6 @@
     <button class="btn-yes" id="btnYes">YES</button>
 </div>
 </div>
-</div>
-<div class="open-till-container" id="openTillAmount" style="display: none;">
-    <div class="open-till-content">
-    <h2>Open Till Amount</h2>
-    <input type="text" class="till-amount-display" disabled />
-<div class="keypad">
-    <button>1</button>
-    <button>2</button>
-    <button>3</button>
-    <button>4</button>
-    <button>5</button>
-    <button>6</button>
-    <button>7</button>
-    <button>8</button>
-    <button>9</button>
-    <button>.</button>
-    <button>0</button>
-    <button><i class="fas fa-backspace"></i></button>
-</div>
-<button class="btn-open-drawer">Open Drawer</button>
-</div>
-</div>
-</div>
-</div>
 
-
-
-
+</div>
 {% endblock %}

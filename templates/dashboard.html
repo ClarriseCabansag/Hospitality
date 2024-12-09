@@ -16,8 +16,7 @@
             </div>
             <ul class="menu">
                 <li class="menu-item {% if request.endpoint == 'sales_order' %}active{% endif %}">
-                    <a href="{{ url_for('sales_order') }}"><i class="fas fa-shopping-cart"></i><span class="menu-text">Sales Order
-                    </span></a>
+                    <a href="{{ url_for('sales_order') }}"><i class="fas fa-shopping-cart"></i><span class="menu-text">Sales Order</span></a>
                 </li>
                 <li class="menu-item {% if request.endpoint == 'seats' %}active{% endif %}">
                     <a href="{{ url_for('seats') }}"><i class="fas fa-table"></i><span class="menu-text">Table</span></a>
@@ -48,7 +47,31 @@
             {% block content %}{% endblock %}
         </main>
     </div>
-      <script src="{{ url_for('static', filename='java/cashier.js') }}"></script>
+
+    <!-- Open Till Amount Container -->
+    <div class="open-till-container" id="openTillAmount" style="display: none;">
+        <div class="open-till-content">
+            <h2>Open Till Amount</h2>
+            <input type="text" class="till-amount-display" disabled />
+            <div class="keypad">
+                <button>1</button>
+                <button>2</button>
+                <button>3</button>
+                <button>4</button>
+                <button>5</button>
+                <button>6</button>
+                <button>7</button>
+                <button>8</button>
+                <button>9</button>
+                <button>.</button>
+                <button>0</button>
+                <button><i class="fas fa-backspace"></i></button>
+            </div>
+            <button class="btn-open-drawer">Open Drawer</button>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='java/cashier.js') }}"></script>
     {% block js %}{% endblock %}
 </body>
 </html>

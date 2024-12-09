@@ -1,0 +1,168 @@
+<h2 class="tab_panel_title mb-3">Manage Users</h2>
+    <table
+      id="manage_users_table"
+      class="table table-hover table-bordered border-dark mt-3"
+    >
+      <thead class="border-dark">
+        <tr>
+          <th class="text-center text-white" style="background-color: #c8131a">Full Name</th>
+          <th class="text-center text-white" style="background-color: #c8131a">Email Address</th>
+          <th class="text-center text-white" style="background-color: #c8131a">Username</th>
+          <th class="text-center text-white" style="background-color: #c8131a">User Title</th>
+          <th class="text-center text-white" style="background-color: #c8131a">User Level</th>
+          <th class="text-center text-white" style="background-color: #c8131a">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="table-group-divider text-center align-middle">
+        <!-- Rows will be dynamically added here -->
+      </tbody>
+    </table>
+
+    <!-- Modal for Add User -->
+    <div
+      class="modal fade"
+      id="add_user_modal"
+      tabindex="-1"
+      aria-labelledby="add_user_modal_Label"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-4" id="add_user_modal_Label">Add User</h1>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+
+          <div class="modal-body text-dark">
+            <form autocomplete="off" id="addUserForm">
+              <div class="mb-3 ms-2 me-2">
+                <label for="full_name" class="form-label">Full Name</label>
+                <input type="text" name="full_name" id="full_name" class="form-control" placeholder="Enter user's full name">
+              </div>
+
+              <div class="mb-3 ms-2 me-2">
+                <label for="email_address" class="form-label">Email Address</label>
+                <input type="email" name="email_address" id="email_address" class="form-control" placeholder="Enter user's email address">
+              </div>
+
+              <div class="mb-3 ms-2 me-2">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" name="username" id="username" class="form-control" placeholder="Enter user's username">
+              </div>
+
+              <div class="mb-3 ms-2 me-2">
+                <label for="password" class="form-label">Passcode</label>
+                <div class="input-group">
+                  <input type="text" name="password" id="password" class="form-control" placeholder="Enter user's password" maxlength="6" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                  <span class="input-group-text" id="togglePassword" style="cursor: pointer; align-items: center;">
+                    <i class="fa-solid fa-eye-slash"></i>
+                  </span>
+                </div>
+              </div>
+
+              <div class="mb-3 ms-2 me-2">
+                <label for="user_title" class="form-label">User Title</label>
+                <input type="text" name="user_title" id="user_title" class="form-control" placeholder="Enter user's user title">
+              </div>
+
+              <div class="mb-3 ms-2 me-2">
+                <label for="user_level" class="form-label">User Level</label>
+                <select name="user_level" id="user_level" class="form-select">
+                  <option selected disabled>Choose user level</option>
+                  <option value="Material Management">Material Management Manager</option>
+                  <option value="Finance Manager">Finance Manager</option>
+                  <option value="Accounting Staff">Accounting Staff</option>
+                  <option value="Accounting Clerk">Accounting Clerk</option>
+                </select>
+              </div>
+            </form>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary gray_button" data-bs-dismiss="modal">Cancel</button>
+            <button id="saveUserButton" class="btn btn-primary" data-bs-dismiss="modal">Save User</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Modal for Edit User -->
+    <div
+      class="modal fade"
+      id="edit_user_modal"
+      tabindex="-1"
+      aria-labelledby="edit_user_modal_Label"
+      aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-4" id="edit_user_modal_Label">Edit User</h1>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+
+          <div class="modal-body text-dark">
+            <form autocomplete="off" id="editUserForm">
+              <div class="mb-3 ms-2 me-2">
+                <label for="edit_full_name" class="form-label">Full Name</label>
+                <input type="text" name="full_name" id="edit_full_name" class="form-control" placeholder="Enter user's full name">
+              </div>
+
+              <div class="mb-3 ms-2 me-2">
+                <label for="edit_email_address" class="form-label">Email Address</label>
+                <input type="email" name="email_address" id="edit_email_address" class="form-control" placeholder="Enter user's email address">
+              </div>
+
+              <div class="mb-3 ms-2 me-2">
+                <label for="edit_username" class="form-label">Username</label>
+                <input type="text" name="username" id="edit_username" class="form-control" placeholder="Enter user's username">
+              </div>
+
+              <div class="mb-3 ms-2 me-2">
+                <label for="edit_password" class="form-label">Passcode</label>
+                <div class="input-group">
+                  <input type="text" name="password" id="edit_password" class="form-control" placeholder="Enter user's password" maxlength="6" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                  <span class="input-group-text" id="pass" style="cursor: pointer; align-items: center;">
+                    <i class="fa-solid fa-eye-slash"></i>
+                  </span>
+                </div>
+              </div>
+
+              <div class="mb-3 ms-2 me-2">
+                <label for="edit_user_title" class="form-label">User Title</label>
+                <input type="text" name="user_title" id="edit_user_title" class="form-control" placeholder="Enter user's title">
+              </div>
+
+              <div class="mb-3 ms-2 me-2">
+                <label for="edit_user_level" class="form-label">User Level</label>
+                <select name="user_level" id="edit_user_level" class="form-select">
+                  <option selected disabled>Choose user level</option>
+                  <option value="Material Management">Material Management Manager</option>
+                  <option value="Finance Manager">Finance Manager</option>
+                  <option value="Accounting Staff">Accounting Staff</option>
+                  <option value="Accounting Clerk">Accounting Clerk</option>
+                </select>
+              </div>
+            </form>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary gray_button" data-bs-dismiss="modal">Cancel</button>
+            <!-- Updated Save button with the pencil icon -->
+            <button id="saveEditUserButton" class="btn btn-primary" data-bs-dismiss="modal">
+              <i class="fa-solid fa-pen-to-square"></i> Save Changes
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>

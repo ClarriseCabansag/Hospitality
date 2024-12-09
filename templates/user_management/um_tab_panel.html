@@ -1,0 +1,91 @@
+{% extends "main.html" %}
+
+
+<title>{% block title %} User Management {% endblock %}</title>
+
+{% block head %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/base_styles.css') }}"
+/>
+
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/tables/manage_users.css') }}"
+/>
+{% endblock %}
+
+{% block content %}
+<main>
+<div class="container" >  <!-- Optional: You can use a container to keep the content properly aligned -->
+  <ul class="nav nav-tabs custom_tabs">
+    <li class="nav-item">
+      <a
+        href="#manage_users"
+        class="nav-link active"
+        id="manage_users_tab"
+        data-bs-toggle="tab"
+      >
+        <i class="fa-solid fa-user-group"></i> Manage Users
+      </a>
+    </li>
+    <li class="nav-item">
+      <a
+        href="#manage_user_levels"
+        class="nav-link"
+        id="manage_user_levels_tab"
+        data-bs-toggle="tab"
+      >
+        <i class="fa-solid fa-user-tag"></i> Manage User Levels
+      </a>
+    </li>
+    <!-- Uncomment if you need this tab
+    <li class="nav-item">
+      <a href="#manage_privileges" class="nav-link" id="manage_privileges_tab" data-bs-toggle="tab">
+        <i class="fa-solid fa-key"></i> Manage Privileges
+      </a>
+    </li>
+    -->
+  </ul>
+
+  <div class="tab-content pt-3">
+    <div
+      class="tab-pane fade show active"
+      id="manage_users"
+      role="tabpanel"
+      aria-labelledby="manage_users_tab"
+    >
+      {% include 'user_management/um_tables/manage_users.html' %}
+    </div>
+    <div
+      class="tab-pane fade"
+      id="manage_user_levels"
+      role="tabpanel"
+      aria-labelledby="manage_user_levels_tab"
+    >
+      {% include 'user_management/um_tables/manage_user_levels.html' %}
+    </div>
+    <div
+      class="tab-pane fade"
+      id="manage_privileges"
+      role="tabpanel"
+      aria-labelledby="manage_privileges_tab"
+    >
+      {% include 'user_management/um_tables/manage_privileges.html' %}
+    </div>
+  </div>
+</div>  <!-- This is where the content will be placed now instead of <main> -->
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='java/user_management/um_tables/manage_users.js') }}"></script>
+<script src="{{ url_for('static', filename='java/user_management/um_tables/manage_user_levels.js') }}"></script>
+<script src="{{ url_for('static', filename='java/user_management/um_tables/manage_user_levels.js') }}"></script>
+<script src="{{ url_for('static', filename='java/user_management/um_modals/password.js') }}"></script>
+<script src="{{ url_for('static', filename='java/user_management/um_modals/manage_users/view_user_details.js') }}"></script>
+<script src="{{ url_for('static', filename='java/user_management/um_modals/manage_user_levels/accordion.js') }}"></script>
+<script src="{{ url_for('static', filename='java/add_user.js')}}"></script>
+{% endblock %}
+
+<script src="{{ url_for('static', filename='java/main.js') }}"></script>
+</main>
