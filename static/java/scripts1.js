@@ -53,26 +53,103 @@ document.addEventListener("DOMContentLoaded", function () {
         this.value = validateInput(this.value);
     });
 
-    // Open drawer button
-    document.querySelector(".btn-open-drawer").addEventListener("click", function () {
-        alert("Drawer opened with amount: " + tillAmount);
-        // Reset the till amount
-        tillAmount = "";
-        tillAmountDisplay.value = tillAmount;
-        openTillAmount.style.display = "none";
+    // Capture and send the current time in 12-hour format (AM/PM)
+    function formatTimeTo12Hour(time) {
+        let date = new Date(time);
+        let hours = date.getHours();
+        let minutes = date.getMinutes();
+        let ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // the hour '0' should be '12'
+        minutes = minutes < 10 ? '0' + minutes : minutes;
+        return hours + ':' + minutes + ' ' + ampm;
+    }
+
+    document.querySelector('.btn-open-drawer').addEventListener('click', function () {
+        const tillAmountInput = document.querySelector('.till-amount-display');
+        const tillAmount = parseFloat(tillAmountInput.value);
+
+        if (!tillAmount || tillAmount <= 0) {
+            alert('Please enter a valid amount');
+            return;
+        }
+
+        const currentTime = new Date();
+        const formattedTime = formatTimeTo12Hour(currentTime); // Format the time to AM/PM format
+
+        // Send data to Flask API
+        fetch('/open_till', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ amount: tillAmount, time: formattedTime })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    alert('Till opened with amount: ₱' + data.amount);
+                    document.getElementById('openTillAmount').style.display = 'none'; // Close the modal
+                }
+            })
+            .catch(error => console.error('Error:', error));
     });
 });
 
+
 //menu.js
 document.addEventListener('DOMContentLoaded', function () {
-    const categories = document.querySelectorAll('.category');
-    const menuSections = document.querySelectorAll('.menu-items');
+    const categories = document.querySelectorAll('.category'); // All category buttons
+    const menuSections = document.querySelectorAll('.menu-items'); // All menu sections
+    const menuGrid = document.querySelector('.menu-grid'); // The grid for displaying items dynamically
 
     // Display all sections by default
     menuSections.forEach(section => {
         section.style.display = 'block';
     });
 
+    // Function to fetch and populate the inventory items
+    const fetchAndDisplayInventory = () => {
+        fetch('/api/inventory_data') // Replace with your API endpoint
+            .then(response => response.json())
+            .then(data => {
+                // Clear any existing items
+                menuGrid.innerHTML = '';
+
+                data.forEach(item => {
+                    // Create a menu item element
+                    const menuItem = document.createElement('div');
+                    menuItem.classList.add('menu-item');
+                    menuItem.setAttribute('data-category', 'solo-boodle-flight'); // Example category
+
+                    // Fix for incomplete image URLs
+                    const imageUrl = item.image_url.startsWith('http')
+                        ? item.image_url
+                        : `https://material-management-system-2.onrender.com${item.image_url}`;
+
+                    // Debugging: Log image URLs to the console
+                    console.log(`Image URL for ${item.item}: ${imageUrl}`);
+
+                    // Populate menu item content
+                    menuItem.innerHTML = `
+                        <img src="${imageUrl}" alt="${item.item}" onerror="this.src='/path/to/default-image.jpg'">
+                        <p>${item.item}</p>
+                        <span>₱${item.price.toFixed(2)}</span>
+                    `;
+
+                    // Append the menu item to the grid
+                    menuGrid.appendChild(menuItem);
+                });
+            })
+            .catch(error => console.error('Error fetching inventory data:', error));
+    };
+
+    // Fetch and display inventory data on load
+    fetchAndDisplayInventory();
+
+    // Add category filtering functionality
     categories.forEach(category => {
         category.addEventListener('click', function () {
             const selectedCategory = this.getAttribute('data-category');
@@ -104,24 +181,16 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
+
 // ordersummary.js
 document.addEventListener('DOMContentLoaded', function () {
-    const images = document.querySelectorAll('.menu-item img');
     const emptyCart = document.getElementById('emptyCart');
     const orderOptions = document.getElementById('orderOptions');
-    const buttons = document.querySelectorAll('.order-options button');
     const orderSummary = document.getElementById('orderSummary');
     const totalAmountContainer = document.getElementById('totalAmountContainer');
     const totalAmountElement = document.getElementById('totalAmount'); // Element to display total amount
     const btnDineIn = document.querySelector('.btn-dine-in');
     const btnTakeOut = document.querySelector('.btn-take-out');
-
-    // Popup elements for editing notes
-    const popupContainer = document.getElementById('editpopupContainer');
-    const saveNotesButton = document.getElementById('saveNotes');
-    const cancelPopupButton = document.getElementById('cancelPopup');
-    const notesInput = document.getElementById('notesInput');
-    let currentOrderItem = null; // Store the current item being edited
 
     let orderID = null; // To store the orderID for the session
 
@@ -166,45 +235,15 @@ document.addEventListener('DOMContentLoaded', function () {
         totalAmountElement.textContent = `₱${totalAmount.toFixed(2)}`;
     }
 
-    // Function to show the edit popup
-    function showPopup(orderItem) {
-        popupContainer.style.display = 'flex'; // Show the popup
-        notesInput.value = ''; // Clear previous input
-        currentOrderItem = orderItem; // Store the item being edited
-    }
 
-    // Function to hide the popup
-    function hidePopup() {
-        popupContainer.style.display = 'none'; // Hide the popup
-    }
+    // Event delegation for menu item image clicks
+    document.querySelector('.menu-grid').addEventListener('click', function(event) {
+        if (event.target.tagName === 'IMG') {
+            const clickedImage = event.target;
+            const menuItem = clickedImage.closest('.menu-item'); // Get the parent .menu-item element
+            const itemName = menuItem.querySelector('p').textContent;
+            const itemPrice = menuItem.querySelector('span').textContent;
 
-   // Function to delete an order item
-    function deleteOrderItem(button) {
-    const itemContainer = button.closest('.item-container'); // Find the closest item container
-    itemContainer.remove(); // Remove the item
-
-    calculateTotalAmount(); // Recalculate the total after an item is removed
-
-    // Check if the orderSummary is empty
-    if (orderSummary.childElementCount === 1) { // The first child is the order container (Order ID/Date)
-        // Remove order summary and total amount
-        orderSummary.innerHTML = ''; // Clear the order summary
-        totalAmountElement.textContent = '₱0.00'; // Reset the total amount
-        totalAmountContainer.style.display = 'none'; // Hide the total amount container
-
-        // Show the empty cart message
-        emptyCart.style.display = 'block';
-
-        // Hide the order options section
-        orderOptions.style.display = 'none';
-
-        // Reset the orderID to null for the next session
-        orderID = null;
-    }
-}
-
-    images.forEach(image => {
-        image.addEventListener('click', function () {
             // Hide the empty cart section
             emptyCart.style.display = 'none';
 
@@ -219,13 +258,6 @@ document.addEventListener('DOMContentLoaded', function () {
             // Get the current date
             const currentDate = getCurrentDate();
 
-            // Get the parent .menu-item element
-            const menuItem = this.parentElement;
-
-            // Extract item details from the parent .menu-item element
-            const itemName = menuItem.querySelector('p').textContent;
-            const itemPrice = menuItem.querySelector('span').textContent;
-
             // Create a new container for the image, name, price, and buttons
             const itemContainer = document.createElement('div');
             itemContainer.classList.add('item-container');
@@ -234,7 +266,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const itemElement = document.createElement('div');
             itemElement.classList.add('order-item');
             itemElement.innerHTML = `
-                <img src="${this.src}" alt="${itemName}" class="order-summary-image">
+                <img src="${clickedImage.src}" alt="${itemName}" class="order-summary-image">
                 <div class="order-item-content">
                     <p>${itemName}</p>
                     <span>${itemPrice}</span>
@@ -287,7 +319,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // Append the item to the order summary (without removing the existing ones)
             orderSummary.appendChild(itemContainer);
             calculateTotalAmount(); // Calculate total after adding an item
-        });
+        }
     });
 
     // Event listeners for minus and plus buttons
@@ -299,39 +331,10 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Event listener to show the popup when the edit button is clicked
-    orderSummary.addEventListener('click', function (event) {
-        if (event.target.closest('.edit')) {
-            const orderItem = event.target.closest('.order-item'); // Get the closest order item
-            showPopup(orderItem);
-        }
-    });
-
     // Event listener for delete buttons
     orderSummary.addEventListener('click', function (event) {
         if (event.target.closest('.delete')) {
             deleteOrderItem(event.target.closest('.delete')); // Call delete function
-        }
-    });
-
-    // Cancel popup functionality
-    cancelPopupButton.addEventListener('click', function () {
-        hidePopup(); // Hide the popup when cancel is clicked
-    });
-
-    // Save notes functionality
-    saveNotesButton.addEventListener('click', function () {
-        const notes = notesInput.value.trim();
-        if (notes && currentOrderItem) {
-            // Create or update the notes element within the order item
-            let notesElement = currentOrderItem.querySelector('.order-notes');
-            if (!notesElement) {
-                notesElement = document.createElement('p');
-                notesElement.classList.add('order-notes');
-                currentOrderItem.appendChild(notesElement);
-            }
-            notesElement.textContent = `Notes: ${notes}`;
-            hidePopup(); // Hide the popup after saving
         }
     });
 
@@ -348,41 +351,51 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
-document.addEventListener("DOMContentLoaded", function() {
-    const dineInButton = document.querySelector('.btn-dine-in');
-    const takeOutButton = document.querySelector('.btn-take-out');
-
-    dineInButton.addEventListener('click', function() {
-        // Remove 'clicked' class from take-out button if it's added
-        takeOutButton.classList.remove('clicked');
-        // Toggle 'clicked' class for dine-in button
-        dineInButton.classList.toggle('clicked');
-    });
-
-    takeOutButton.addEventListener('click', function() {
-        // Remove 'clicked' class from dine-in button if it's added
-        dineInButton.classList.remove('clicked');
-        // Toggle 'clicked' class for take-out button
-        takeOutButton.classList.toggle('clicked');
-    });
-});
 
 document.addEventListener("DOMContentLoaded", function() {
+    // Get the required buttons and continue button
     const dineInButton = document.querySelector('.btn-dine-in');
     const takeOutButton = document.querySelector('.btn-take-out');
     const continueButton = document.getElementById("continueButton"); // Get the continue button
 
-    continueButton.addEventListener("click", function() {
-        // Check if Dine In or Take Out is clicked
-        if (dineInButton.classList.contains('clicked')) {
-            // If Dine In is clicked, navigate to seats.html
-            window.location.href = '/seats';
-        } else if (takeOutButton.classList.contains('clicked')) {
-            // If Take Out is clicked, navigate to payment.html
-            window.location.href = '/payment';
-        }
-    });
+    // Check if the elements exist before proceeding
+    if (dineInButton && takeOutButton && continueButton) {
+        // Add event listener for the continue button
+        continueButton.addEventListener("click", function() {
+            console.log("Continue button clicked");
+
+            // Check if Dine In or Take Out is clicked
+            if (dineInButton.classList.contains('clicked')) {
+                console.log("Dine In selected");
+                window.location.href = '/seats'; // Navigate to seats page
+            } else if (takeOutButton.classList.contains('clicked')) {
+                console.log("Take Out selected");
+                window.location.href = '/payment'; // Navigate to payment page
+            } else {
+                console.log("Neither Dine In nor Take Out selected");
+            }
+        });
+
+        // Toggle the 'clicked' class when Dine In or Take Out is clicked
+        dineInButton.addEventListener('click', function() {
+            // Remove 'clicked' class from take-out button if it's added
+            takeOutButton.classList.remove('clicked');
+            // Toggle 'clicked' class for dine-in button
+            dineInButton.classList.toggle('clicked');
+        });
+
+        takeOutButton.addEventListener('click', function() {
+            // Remove 'clicked' class from dine-in button if it's added
+            dineInButton.classList.remove('clicked');
+            // Toggle 'clicked' class for take-out button
+            takeOutButton.classList.toggle('clicked');
+        });
+
+    } else {
+        console.log("One or more required elements are missing.");
+    }
 });
+
 
   // Function to fetch cashier name and update the page
         async function loadCashierName() {
@@ -404,5 +417,4 @@ document.addEventListener("DOMContentLoaded", function() {
 
         // Call the function when the page loads
         window.onload = loadCashierName;
-
 

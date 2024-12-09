@@ -80,19 +80,35 @@ document.getElementById('login-form').addEventListener('submit', function(event)
             });
         }
 
+  // Process role data from backend
         return response.json().then(data => {
             const role = data.role;
-            if (role === 'manager') {
-                window.location.href = '/managers';
-                window.location.href = '/profile_management';
+
+            // Debugging: Log the role for troubleshooting
+            console.log('Role received from backend:', role);
+
+            // Redirection based on role
+            if (role === 'Material Management') {
+                // Redirect to Material Management System
+                window.location.href = 'https://material-management-system-2.onrender.com/';
+            } else if (['Finance Manager', 'Accounting Staff', 'Accounting Clerk'].includes(role)) {
+                // Redirect to Finance/Accounting System
+                window.location.href = 'https://material-management-system-2.onrender.com/';
+            } else if (role === 'manager') {
+                // Redirect to main dashboard for manager
+                window.location.href = '/user_management    ';
             } else if (role === 'cashier') {
+                // Redirect to sales order page for cashier
                 window.location.href = '/sales_order';
+            } else {
+                // Default role-based redirection
+                window.location.href = '/dashboard';
             }
         });
     })
     .catch(error => {
-        console.error('Error:', error);
-        document.getElementById('error-message').innerText = 'An error occurred. Please try again.';
+        console.error('Error during login process:', error);
+        document.getElementById('error-message').innerText = 'An error occurred. Please try again later.';
     });
 });
 
