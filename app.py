@@ -1,11 +1,18 @@
+from datetime import datetime
+import requests
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 from models.Cashier import Cashier
 from models.Manager import Manager
+from models.Till import OpenTill
+from models.user import User
 from services.auth import authenticate_user, migrate_passwords
 from services.token_service import create_token, decode_token
 from services.database import db
 from sqlalchemy import inspect
 from flask_migrate import Migrate
+from functools import wraps
+from flask import jsonify
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from werkzeug.security import generate_password_hash, check_password_hash
 
 # Initialize Flask application
@@ -115,20 +122,222 @@ def create_manager():
         db.session.rollback()
         return jsonify({"message": f"Failed to save manager: {str(e)}", "success": False}), 500
 
+@app.route('/get_managers', methods=['GET'])
+def get_managers():
+        # Query the database for all managers
+        managers = Manager.query.all()
+
+        # Create a JSON response with manager details
+        return jsonify({"managers": [
+            {
+                "id": manager.id,
+                "name": manager.name,
+                "last_name": manager.last_name,
+                "username": manager.username,
+                "passcode": manager.passcode,  # Only include this if passcode should be visible
+                "date_created": manager.date_created
+            } for manager in managers
+        ]}), 200
+
+
 @app.route('/sales_order')
 def sales_order():
+    action = request.args.get('action', None)
+
+    if action == 'open_till':
+        # Perform logic to handle "Open Till" (e.g., database update, logging)
+        # Example logic:
+        try:
+            # Simulate opening the till
+            print("Till opened successfully.")
+            return jsonify(success=True)
+        except Exception as e:
+            print(f"Error opening till: {e}")
+            return jsonify(success=False)
+
+    # Render the sales_order page for normal requests
     return render_template('sales_order.html')
+
+
+@app.route('/api/inventory_data')
+def get_inventory_data():
+    # Fetch data from the external inventory API
+    inventory_url = "https://material-management-system-2.onrender.com/api/inventory_summary"
+    response = requests.get(inventory_url)
+
+    if response.status_code == 200:
+        inventory_data = response.json()
+        # Transform or process data if needed
+        return jsonify(inventory_data)
+    else:
+        return jsonify({"error": "Failed to fetch inventory data"}), response.status_code
+
+
+@app.route('/open_till', methods=['POST'])
+def open_till():
+    try:
+        data = request.get_json()
+        amount = data.get('amount')
+        time = data.get('time')  # Time passed from the frontend (formatted as AM/PM)
+
+        # Get current date in YYYY-MM-DD format
+        current_date = datetime.now().strftime('%m-%d-%Y')  # Date in format: 2024-12-01
+
+        # Check for valid amount
+        if not amount or float(amount) <= 0:
+            return jsonify({'error': 'Invalid amount'}), 400
+
+        # Save to the database (assuming 'date' and 'time' columns exist in your OpenTill model)
+        new_till = OpenTill(amount=amount, time=time, date=current_date)
+        db.session.add(new_till)
+        db.session.commit()
+
+        return jsonify({'message': 'Till opened successfully', 'amount': amount, 'time': time, 'date': current_date}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+
+
+@app.route('/main')
+def main():
+    return render_template('main.html')
+
+# Add User route
+@app.route('/add_user', methods=['POST'])
+def add_user():
+    try:
+        # Get data from the request
+        data = request.get_json()
+
+        # Extract user data from request
+        full_name = data.get('full_name')
+        email_address = data.get('email_address')
+        username = data.get('username')
+        password = data.get('password')
+        user_title = data.get('user_title')
+        user_level = data.get('user_level')
+
+        # Validation: Check for required fields
+        if not all([full_name, email_address, username, password, user_title, user_level]):
+            return jsonify({'success': False, 'message': 'All fields are required!'}), 400
+
+        # Check for existing user with the same email or username
+        existing_user = User.query.filter((User.email_address == email_address) | (User.username == username)).first()
+        if existing_user:
+            return jsonify({'success': False, 'message': 'User with this email or username already exists!'}), 400
+
+        # Create new user
+        new_user = User(
+            full_name=full_name,
+            email_address=email_address,
+            username=username,
+            password=password,  # You should hash the password before storing it
+            user_title=user_title,
+            user_level=user_level
+        )
+
+        # Add to the database session and commit
+        db.session.add(new_user)
+        db.session.commit()
+
+        # Return success message
+        return jsonify({'success': True, 'message': 'User added successfully!'}), 201
+    except Exception as e:
+        # Handle unexpected errors
+        db.session.rollback()  # Rollback the session in case of error
+        print(f"Error adding user: {e}")  # Print the error for debugging (can be replaced with logging)
+        return jsonify({'success': False, 'message': 'Error adding user', 'error': str(e)}), 500
+
+
+# Get all users
+@app.route('/get_users', methods=['GET'])
+def get_users():
+    users = User.query.all()
+    user_list = []
+    for user in users:
+        user_list.append({
+            "id": user.id,
+            "full_name": user.full_name,
+            "email_address": user.email_address,
+            "username": user.username,
+            "user_title": user.user_title,
+            "user_level": user.user_level,
+        })
+    return jsonify({"users": user_list})
+
+# Get a specific user
+@app.route('/get_user/<int:user_id>', methods=['GET'])
+def get_user(user_id):
+    user = db.session.get(User, user_id)
+    if user:
+        return jsonify({
+            "success": True,
+            "user": {
+                "id": user.id,
+                "full_name": user.full_name,
+                "email_address": user.email_address,
+                "username": user.username,
+                "password":user.password,
+                "user_title": user.user_title,
+                "user_level": user.user_level,
+            }
+        })
+    return jsonify({"success": False, "message": "User not found"}), 404
+
+
+@app.route('/edit_user/<int:user_id>', methods=['PUT'])
+def edit_user(user_id):
+    user = db.session.get(User, user_id)
+
+    if not user:
+        return jsonify({'success': False, 'message': 'User not found'}), 404
+
+    data = request.get_json()
+
+    # Update the user fields
+    user.full_name = data.get('full_name', user.full_name)
+    user.email_address = data.get('email_address', user.email_address)
+    user.username = data.get('username', user.username)
+    user.password = data.get('password', user.password)  # No hashing
+    user.user_title = data.get('user_title', user.user_title)
+    user.user_level = data.get('user_level', user.user_level)
+
+    try:
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'User updated successfully'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': 'Error updating user', 'error': str(e)}), 500
+
+
+# Delete User route
+@app.route('/delete_user/<int:user_id>', methods=['DELETE'])
+def delete_user(user_id):
+    user = db.session.get(User, user_id)
+    if not user:
+        return jsonify({"success": False, "message": "User not found"}), 404
+
+    try:
+        db.session.delete(user)
+        db.session.commit()
+        return jsonify({"success": True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"success": False, "message": str(e)}), 500
+
 
 @app.route('/get_cashier_name', methods=['GET'])
 def get_cashier_name():
     if 'user_id' in session:
-        cashier = Cashier.query.get(session['user_id'])
+        cashier = db.session.get(Cashier, session['user_id'])
         if cashier:
             return jsonify({
                 "name": cashier.name,
                 "last_name": cashier.last_name
             }), 200
     return jsonify({"message": "Not authenticated"}), 401
+
 
 @app.route('/seats')
 def seats():
@@ -145,6 +354,14 @@ def order_history():
 @app.route('/managers')
 def manager_dashboard():
     return render_template('managers.html')
+
+@app.route('/dashboard1')
+def dashboard1():
+    return render_template('dashboard1.html')
+
+@app.route('/user_management')
+def user_management():
+    return render_template('user_management/um_tab_panel.html')
 
 @app.route('/profile_management')
 def profile_management():
@@ -238,6 +455,7 @@ def inventory_management():
 @app.route('/cashier_summary')
 def cashier_summary():
     return render_template('cashier_summary.html')
+
 
 @app.route('/logout')
 def logout():
