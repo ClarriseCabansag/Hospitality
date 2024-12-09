@@ -7,7 +7,7 @@ def create_token(user):
         'user_id': user['id'],  # Accessing 'id' key directly from the dictionary
         'username': user['username'],  # Accessing 'username' key directly from the dictionary
         'role': user['role'],  # Accessing 'role' key directly from the dictionary
-        'exp': datetime.utcnow() + timedelta(hours=24)  # Token expires in 24 hours
+        'exp': datetime.utcnow() + timedelta(days=30)  # Token expires in 24 hours
     }
     return jwt.encode(payload, current_app.config['SECRET_KEY'], algorithm='HS256')
 
