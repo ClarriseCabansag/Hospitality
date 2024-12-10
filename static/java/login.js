@@ -93,7 +93,7 @@ document.getElementById('login-form').addEventListener('submit', function(event)
                 window.location.href = 'https://material-management-system-2.onrender.com/';
             } else if (['Finance Manager', 'Accounting Staff', 'Accounting Clerk'].includes(role)) {
                 // Redirect to Finance/Accounting System
-                window.location.href = 'https://material-management-system-2.onrender.com/';
+                window.location.href = 'https://hospitality-fms.onrender.com/fms';
             } else if (role === 'manager') {
                 // Redirect to main dashboard for manager
                 window.location.href = '/user_management    ';
