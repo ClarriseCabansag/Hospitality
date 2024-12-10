@@ -88,12 +88,12 @@ document.getElementById('login-form').addEventListener('submit', function(event)
             console.log('Role received from backend:', role);
 
             // Redirection based on role
-            if (role === 'Material Management') {
+            if  {(['Finance Manager', 'Accounting Staff', 'Accounting Clerk'].includes(role))
                 // Redirect to Material Management System
-                window.location.href = 'https://material-management-system-2.onrender.com/';
-            } else if (['Finance Manager', 'Accounting Staff', 'Accounting Clerk'].includes(role)) {
-                // Redirect to Finance/Accounting System
                 window.location.href = 'https://hospitality-fms.onrender.com/fms';
+            } else if (role === 'Material Management') {
+                // Redirect to Finance/Accounting System
+                window.location.href = 'https://material-management-system-2.onrender.com/';
             } else if (role === 'manager') {
                 // Redirect to main dashboard for manager
                 window.location.href = '/user_management    ';
