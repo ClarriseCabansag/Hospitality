@@ -10,9 +10,8 @@ from services.token_service import create_token, decode_token
 from services.database import db
 from sqlalchemy import inspect
 from flask_migrate import Migrate
-from functools import wraps
 from flask import jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
+
 from werkzeug.security import generate_password_hash, check_password_hash
 
 # Initialize Flask application
