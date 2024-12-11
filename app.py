@@ -10,8 +10,9 @@ from services.token_service import create_token, decode_token
 from services.database import db
 from sqlalchemy import inspect
 from flask_migrate import Migrate
+from functools import wraps
 from flask import jsonify
-
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from werkzeug.security import generate_password_hash, check_password_hash
 
 # Initialize Flask application
@@ -166,10 +167,30 @@ def get_inventory_data():
 
     if response.status_code == 200:
         inventory_data = response.json()
-        # Transform or process data if needed
-        return jsonify(inventory_data)
+
+        # Define allowed items for each category
+        solo_flight_items = {"FLIGHT 001", "FLIGHT 002", "FLIGHT 003", "FLIGHT 004", "FLIGHT 005", "FLIGHT 006"}
+        boodle_flight_items = {"BATANES", "CATICLAN", "MANILA", "PALAWAN", "PILIPINAS", "WOW PH", "CHOOSE PH"}
+        a_la_carte_items = {"ANGELES", "PAMPANGA", "SAMPALOC", "TAGAYTAY", "TARLAC"}
+
+        # Add category information to items
+        processed_data = []
+        for item in inventory_data:
+            if item.get('item') in solo_flight_items:
+                item['category'] = 'solo-boodle-flight'
+                processed_data.append(item)
+            elif item.get('item') in boodle_flight_items:
+                item['category'] = 'boodle-flights'
+                processed_data.append(item)
+            elif item.get('item') in a_la_carte_items:
+                item['category'] = 'a-la-carte'
+                processed_data.append(item)
+
+        return jsonify(processed_data)
     else:
         return jsonify({"error": "Failed to fetch inventory data"}), response.status_code
+
+
 
 
 @app.route('/open_till', methods=['POST'])
