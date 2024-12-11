@@ -110,37 +110,92 @@ document.addEventListener('DOMContentLoaded', function () {
         section.style.display = 'block';
     });
 
-    // Function to fetch and populate the inventory items
     const fetchAndDisplayInventory = () => {
-        fetch('/api/inventory_data') // Replace with your API endpoint
+        fetch('/api/inventory_data') // API endpoint for inventory data
             .then(response => response.json())
             .then(data => {
                 // Clear any existing items
                 menuGrid.innerHTML = '';
 
-                data.forEach(item => {
-                    // Create a menu item element
+                // Define allowed items for each category
+                const allowedItemsSoloFlight = ['FLIGHT 001', 'FLIGHT 002', 'FLIGHT 003', 'FLIGHT 004', 'FLIGHT 005', 'FLIGHT 006'];
+                const allowedItemsBoodleFlights= ['BATANES', 'CATICLAN', 'MANILA', 'PALAWAN', 'PILIPINAS', 'WOW PH', 'CHOOSE PH'];
+                const allowedItemsALaCarte = ['ANGELES', 'PAMPANGA', 'SAMPALOC', 'TAGAYTAY', 'TARLAC'];
+
+                // Filter data for Boodle Flights
+                const filteredBoodleFlights = data.filter(item => allowedItemsBoodleFlights.includes(item.item));
+
+                // Filter data for Solo Flights
+                const filteredSoloFlight = data.filter(item => allowedItemsSoloFlight.includes(item.item));
+
+                // Filter data for A La Carte
+                const filteredALaCarte = data.filter(item => allowedItemsALaCarte.includes(item.item));
+
+                // Clear the menu grids before adding new items
+                const soloMenuGrid = document.getElementById('menu-grid-solo');
+                soloMenuGrid.innerHTML = '';
+
+                const boodleMenuGrid = document.getElementById('boodle-flights').querySelector('.menu-grid');
+                boodleMenuGrid.innerHTML = '';
+
+                const aLaCarteMenuGrid = document.getElementById('a-la-carte').querySelector('.menu-grid');
+                aLaCarteMenuGrid.innerHTML = '';
+
+                // Add items to Boodle Flights
+                filteredBoodleFlights.forEach(item => {
                     const menuItem = document.createElement('div');
                     menuItem.classList.add('menu-item');
-                    menuItem.setAttribute('data-category', 'solo-boodle-flight'); // Example category
+                    menuItem.setAttribute('data-category', 'boodle-flights');
 
-                    // Fix for incomplete image URLs
                     const imageUrl = item.image_url.startsWith('http')
                         ? item.image_url
                         : `https://material-management-system-2.onrender.com${item.image_url}`;
 
-                    // Debugging: Log image URLs to the console
-                    console.log(`Image URL for ${item.item}: ${imageUrl}`);
-
-                    // Populate menu item content
                     menuItem.innerHTML = `
                         <img src="${imageUrl}" alt="${item.item}" onerror="this.src='/path/to/default-image.jpg'">
                         <p>${item.item}</p>
                         <span>₱${item.price.toFixed(2)}</span>
                     `;
 
-                    // Append the menu item to the grid
-                    menuGrid.appendChild(menuItem);
+                    boodleMenuGrid.appendChild(menuItem);
+                });
+
+                // Add items to Solo Flights
+                filteredSoloFlight.forEach(item => {
+                    const menuItem = document.createElement('div');
+                    menuItem.classList.add('menu-item');
+                    menuItem.setAttribute('data-category', 'solo-boodle-flight');
+
+                    const imageUrl = item.image_url.startsWith('http')
+                        ? item.image_url
+                        : `https://material-management-system-2.onrender.com${item.image_url}`;
+
+                    menuItem.innerHTML = `
+                        <img src="${imageUrl}" alt="${item.item}" onerror="this.src='/path/to/default-image.jpg'">
+                        <p>${item.item}</p>
+                        <span>₱${item.price.toFixed(2)}</span>
+                    `;
+
+                    soloMenuGrid.appendChild(menuItem);
+                });
+
+                // Add items to A La Carte
+                filteredALaCarte.forEach(item => {
+                    const menuItem = document.createElement('div');
+                    menuItem.classList.add('menu-item');
+                    menuItem.setAttribute('data-category', 'a-la-carte');
+
+                    const imageUrl = item.image_url.startsWith('http')
+                        ? item.image_url
+                        : `https://material-management-system-2.onrender.com${item.image_url}`;
+
+                    menuItem.innerHTML = `
+                        <img src="${imageUrl}" alt="${item.item}" onerror="this.src='/path/to/default-image.jpg'">
+                        <p>${item.item}</p>
+                        <span>₱${item.price.toFixed(2)}</span>
+                    `;
+
+                    aLaCarteMenuGrid.appendChild(menuItem);
                 });
             })
             .catch(error => console.error('Error fetching inventory data:', error));
@@ -182,7 +237,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 
-// ordersummary.js
+//ORDERSUMMARY
 document.addEventListener('DOMContentLoaded', function () {
     const emptyCart = document.getElementById('emptyCart');
     const orderOptions = document.getElementById('orderOptions');
@@ -235,91 +290,92 @@ document.addEventListener('DOMContentLoaded', function () {
         totalAmountElement.textContent = `₱${totalAmount.toFixed(2)}`;
     }
 
+    // Event delegation for menu item image clicks (for all categories)
+    document.querySelectorAll('.menu-grid').forEach(menuGrid => {
+        menuGrid.addEventListener('click', function(event) {
+            if (event.target.tagName === 'IMG') {
+                const clickedImage = event.target;
+                const menuItem = clickedImage.closest('.menu-item'); // Get the parent .menu-item element
+                const itemName = menuItem.querySelector('p').textContent;
+                const itemPrice = menuItem.querySelector('span').textContent;
 
-    // Event delegation for menu item image clicks
-    document.querySelector('.menu-grid').addEventListener('click', function(event) {
-        if (event.target.tagName === 'IMG') {
-            const clickedImage = event.target;
-            const menuItem = clickedImage.closest('.menu-item'); // Get the parent .menu-item element
-            const itemName = menuItem.querySelector('p').textContent;
-            const itemPrice = menuItem.querySelector('span').textContent;
+                // Hide the empty cart section
+                emptyCart.style.display = 'none';
 
-            // Hide the empty cart section
-            emptyCart.style.display = 'none';
+                // Show the order options section
+                orderOptions.style.display = 'block';
 
-            // Show the order options section
-            orderOptions.style.display = 'block';
+                // Generate the order ID only if it's null (i.e., first item clicked in this session)
+                if (!orderID) {
+                    orderID = generateOrderID();
+                }
 
-            // Generate the order ID only if it's null (i.e., first item clicked in this session)
-            if (!orderID) {
-                orderID = generateOrderID();
+                // Get the current date
+                const currentDate = getCurrentDate();
+
+                // Create a new container for the image, name, price, and buttons
+                const itemContainer = document.createElement('div');
+                itemContainer.classList.add('item-container');
+
+                // Create item details element
+                const itemElement = document.createElement('div');
+                itemElement.classList.add('order-item');
+                itemElement.innerHTML = `
+                    <img src="${clickedImage.src}" alt="${itemName}" class="order-summary-image">
+                    <div class="order-item-content">
+                        <p>${itemName}</p>
+                        <span>${itemPrice}</span>
+                    </div>
+                `;
+
+                const controlsElement = document.createElement('div');
+                controlsElement.classList.add('order-controls');
+                controlsElement.innerHTML = `
+                    <div class="left-controls">
+                        <button class="minus"><i class="fas fa-minus-circle"></i></button>
+                    </div>
+                    <div class="quantity-container">
+                        <span class="quantity">1</span>
+                    </div>
+                    <div class="right-controls">
+                        <button class="plus"><i class="fas fa-plus-circle"></i></button>
+                    </div>
+                    <div class="extra-controls">
+                        <button class="edit"><i class="fas fa-pen"></i></button>
+                        <button class="delete"><i class="fas fa-trash"></i></button>
+                    </div>
+                `;
+
+                // Append item details and controls to the item container
+                itemContainer.appendChild(itemElement);
+                itemContainer.appendChild(controlsElement);
+
+                // If this is the first item, display the order ID and date only once
+                if (orderSummary.childElementCount === 0) {
+                    // Create the container for order ID and date
+                    const orderContainer = document.createElement('div');
+                    orderContainer.classList.add('order-container');
+
+                    // Create order summary elements
+                    const orderIDElement = document.createElement('div');
+                    orderIDElement.innerHTML = `<p>Order ID</p><p>${orderID}</p>`;
+
+                    const dateElement = document.createElement('div');
+                    dateElement.innerHTML = `<p>Date</p><p>${currentDate}</p>`;
+
+                    // Append order ID and date to the container
+                    orderContainer.appendChild(orderIDElement);
+                    orderContainer.appendChild(dateElement);
+
+                    // Append the order ID and date container at the top of the summary
+                    orderSummary.appendChild(orderContainer);
+                }
+
+                // Append the item to the order summary (without removing the existing ones)
+                orderSummary.appendChild(itemContainer);
+                calculateTotalAmount(); // Calculate total after adding an item
             }
-
-            // Get the current date
-            const currentDate = getCurrentDate();
-
-            // Create a new container for the image, name, price, and buttons
-            const itemContainer = document.createElement('div');
-            itemContainer.classList.add('item-container');
-
-            // Create item details element
-            const itemElement = document.createElement('div');
-            itemElement.classList.add('order-item');
-            itemElement.innerHTML = `
-                <img src="${clickedImage.src}" alt="${itemName}" class="order-summary-image">
-                <div class="order-item-content">
-                    <p>${itemName}</p>
-                    <span>${itemPrice}</span>
-                </div>
-            `;
-
-            const controlsElement = document.createElement('div');
-            controlsElement.classList.add('order-controls');
-            controlsElement.innerHTML = `
-                <div class="left-controls">
-                    <button class="minus"><i class="fas fa-minus-circle"></i></button>
-                </div>
-                <div class="quantity-container">
-                    <span class="quantity">1</span>
-                </div>
-                <div class="right-controls">
-                    <button class="plus"><i class="fas fa-plus-circle"></i></button>
-                </div>
-                <div class="extra-controls">
-                    <button class="edit"><i class="fas fa-pen"></i></button>
-                    <button class="delete"><i class="fas fa-trash"></i></button>
-                </div>
-            `;
-
-            // Append item details and controls to the item container
-            itemContainer.appendChild(itemElement);
-            itemContainer.appendChild(controlsElement);
-
-            // If this is the first item, display the order ID and date only once
-            if (orderSummary.childElementCount === 0) {
-                // Create the container for order ID and date
-                const orderContainer = document.createElement('div');
-                orderContainer.classList.add('order-container');
-
-                // Create order summary elements
-                const orderIDElement = document.createElement('div');
-                orderIDElement.innerHTML = `<p>Order ID</p><p>${orderID}</p>`;
-
-                const dateElement = document.createElement('div');
-                dateElement.innerHTML = `<p>Date</p><p>${currentDate}</p>`;
-
-                // Append order ID and date to the container
-                orderContainer.appendChild(orderIDElement);
-                orderContainer.appendChild(dateElement);
-
-                // Append the order ID and date container at the top of the summary
-                orderSummary.appendChild(orderContainer);
-            }
-
-            // Append the item to the order summary (without removing the existing ones)
-            orderSummary.appendChild(itemContainer);
-            calculateTotalAmount(); // Calculate total after adding an item
-        }
+        });
     });
 
     // Event listeners for minus and plus buttons
