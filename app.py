@@ -165,29 +165,9 @@ def get_inventory_data():
 
     if response.status_code == 200:
         inventory_data = response.json()
-
-        # Define allowed items for each category
-        solo_flight_items = {"FLIGHT 001", "FLIGHT 002", "FLIGHT 003", "FLIGHT 004", "FLIGHT 005", "FLIGHT 006"}
-        boodle_flight_items = {"BATANES", "CATICLAN", "MANILA", "PALAWAN", "PILIPINAS", "WOW PH", "CHOOSE PH"}
-        a_la_carte_items = {"ANGELES", "PAMPANGA", "SAMPALOC", "TAGAYTAY", "TARLAC"}
-
-        # Add category information to items
-        processed_data = []
-        for item in inventory_data:
-            if item.get('item') in solo_flight_items:
-                item['category'] = 'solo-boodle-flight'
-                processed_data.append(item)
-            elif item.get('item') in boodle_flight_items:
-                item['category'] = 'boodle-flights'
-                processed_data.append(item)
-            elif item.get('item') in a_la_carte_items:
-                item['category'] = 'a-la-carte'
-                processed_data.append(item)
-
-        return jsonify(processed_data)
+        return jsonify(inventory_data)
     else:
         return jsonify({"error": "Failed to fetch inventory data"}), response.status_code
-
 
 
 
