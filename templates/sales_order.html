@@ -35,128 +35,32 @@
     </section>
 </section>
 
-<section class="menu-items-container">
-    <!-- Boodle Flights Section -->
-    <section class="menu-items" id="boodle-flights">
+<section class="menu-items" id="boodle-flights">
         <h2>Boodle Flights</h2>
-        <div class="menu-grid">
-            <!-- Items for Boodle Flights will be dynamically populated here -->
-        </div>
+        <div class="menu-grid" id="menu-grid-boodle"></div>
     </section>
+
+    <section class="menu-items" id="a-la-carte">
+        <h2>A La Carte</h2>
+        <div class="menu-grid" id="menu-grid-a-la-carte"></div>
+    </section>
+
+<section class="menu-items" id="single-flights">
+    <h2>Single Flights</h2>
+    <div class="menu-grid" id="menu-grid-single-flights"></div>
 </section>
 
-<section class="menu-items" id="a-la-carte">
-        <h2>A La Carte</h2>
-        <div class="menu-grid"></div>
-    </section>
+<section class="menu-items" id="international-flights">
+    <h2>International Flights</h2>
+    <div class="menu-grid" id="menu-grid-international-flights"></div>
 </section>
-            <section class="menu-items-container">
-                <section class="menu-items" id="single-flights">
-                    <h2>Single Flights</h2>
-                    <div class="menu-grid">
-                        <div class="menu-item" data-category="single-flights">
-                <img src="{{ url_for('static', filename='img/singleflight/bacolod.jpg') }}" alt="bacolod">
-                <p>Bacolod</p>
-                <span>₱165.00</span>
-            </div>
-            <div class="menu-item" data-category="single-flights">
-                <img src="{{ url_for('static', filename='img/singleflight/cebu.jpg') }}" alt="cebu">
-                <p>Cebu</p>
-                <span>₱165.00</span>
-            </div>
-            <div class="menu-item" data-category="single-flights">
-                <img src="{{ url_for('static', filename='img/singleflight/dagupan.jpg') }}" alt="dagupan">
-                <p>Dagupan</p>
-                <span>₱179.00</span>
-            </div>
-            <div class="menu-item" data-category="single-flights">
-                <img src="{{ url_for('static', filename='img/singleflight/gensan.jpg') }}" alt="gensan">
-                <p>Gensan</p>
-                <span>₱185.00</span>
-            </div>
-            <div class="menu-item" data-category="single-flights">
-                <img src="{{ url_for('static', filename='img/singleflight/ilocos.jpg') }}" alt="ilocos">
-                <p>Ilocos</p>
-                <span>₱165.00</span>
-            </div>
-            <div class="menu-item" data-category="single-flights">
-                <img src="{{ url_for('static', filename='img/singleflight/roxas.jpg') }}" alt="roxas">
-                <p>Roxas</p>
-                <span>₱185.00</span>
-            </div>
-    </div>
+
+
+<section class="menu-items" id="uncle">
+    <h2>Uncle D's Ice Cream Sandwich</h2>
+    <div class="menu-grid" id="menu-grid-uncle"></div>
 </section>
-    <section class="menu-items" id="international-flights">
-        <h2>International Flights</h2>
-            <div class="menu-grid">
-             <div class="menu-item" data-category="international-flights">
-                <img src="{{ url_for('static', filename='img/international/belgium.jpg') }}" alt="belgium">
-                <p>Belgium</p>
-                <span>₱165.00</span>
-            </div>
-            <div class="menu-item" data-category="international-flights">
-                <img src="{{ url_for('static', filename='img/international/france.jpg') }}" alt="france">
-                <p>France</p>
-                <span>₱189.00</span>
-            </div>
-            <div class="menu-item" data-category="international-flights">
-                <img src="{{ url_for('static', filename='img/international/mexico.jpg') }}" alt="mexico">
-                <p>Mexico</p>
-                <span>₱189.00</span>
-            </div>
-            <div class="menu-item" data-category="international-flights">
-                <img src="{{ url_for('static', filename='img/international/newyork.jpg') }}" alt="newyork">
-                <p>New York</p>
-                <span>₱185.00</span>
-            </div>
-            <div class="menu-item" data-category="international-flights">
-                <img src="{{ url_for('static', filename='img/international/shanghai.jpg') }}" alt="shanghai">
-                <p>Shanghai</p>
-                <span>₱169.00</span>
-            </div>
-    </div>
-</section>
-    <section class="menu-items" id="uncle">
-        <h2>Uncle D's</h2>
-        <div class="menu-grid">
-            <div class="menu-item" data-category="uncle">
-                <img src="{{ url_for('static', filename='img/uncle/chocnut.jpg') }}" alt="chocnut">
-                <p>Chocnut</p>
-                <span>₱95.00</span>
-            </div>
-            <div class="menu-item" data-category="uncle">
-                <img src="{{ url_for('static', filename='img/uncle/coffee.jpg') }}" alt="coffee">
-                <p>Coffee</p>
-                <span>₱95.00</span>
-            </div>
-            <div class="menu-item" data-category="uncle">
-                <img src="{{ url_for('static', filename='img/uncle/melon.jpg') }}" alt="melon">
-                <p>Melon</p>
-                <span>₱95.00</span>
-            </div>
-            <div class="menu-item" data-category="uncle">
-                <img src="{{ url_for('static', filename='img/uncle/pandan.jpg') }}" alt="pandan">
-                <p>Pandan</p>
-                <span>₱95.00</span>
-            </div>
-            <div class="menu-item" data-category="uncle">
-                <img src="{{ url_for('static', filename='img/uncle/strawberry.jpg') }}" alt="strawberry">
-                <p>Strawberry</p>
-                <span>₱95.00</span>
-            </div>
-            <div class="menu-item" data-category="uncle">
-                <img src="{{ url_for('static', filename='img/uncle/ube.jpg') }}" alt="ube">
-                <p>Ube</p>
-                <span>₱95.00</span>
-            </div>
-            <div class="menu-item" >
-                <img src="{{ url_for('static', filename='img/uncle/yema.jpg') }}" alt="yema">
-                <p>Yema</p>
-                <span>₱95.00</span>
-            </div>
-</div>
-</section>
-</section>
+
 
 </main>
 
