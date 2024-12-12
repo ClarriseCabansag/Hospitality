@@ -103,106 +103,50 @@ document.addEventListener("DOMContentLoaded", function () {
 document.addEventListener('DOMContentLoaded', function () {
     const categories = document.querySelectorAll('.category'); // All category buttons
     const menuSections = document.querySelectorAll('.menu-items'); // All menu sections
-    const menuGrid = document.querySelector('.menu-grid'); // The grid for displaying items dynamically
 
     // Display all sections by default
     menuSections.forEach(section => {
         section.style.display = 'block';
     });
 
-    const fetchAndDisplayInventory = () => {
-        fetch('/api/inventory_data') // API endpoint for inventory data
+    const fetchAndDisplayCategoryItems = (category, containerId) => {
+        fetch('/api/inventory_data')
             .then(response => response.json())
             .then(data => {
                 // Clear any existing items
-                menuGrid.innerHTML = '';
+                const container = document.getElementById(containerId);
+                container.innerHTML = '';
 
-                // Define allowed items for each category
-                const allowedItemsSoloFlight = ['FLIGHT 001', 'FLIGHT 002', 'FLIGHT 003', 'FLIGHT 004', 'FLIGHT 005', 'FLIGHT 006'];
-                const allowedItemsBoodleFlights= ['BATANES', 'CATICLAN', 'MANILA', 'PALAWAN', 'PILIPINAS', 'WOW PH', 'CHOOSE PH'];
-                const allowedItemsALaCarte = ['ANGELES', 'PAMPANGA', 'SAMPALOC', 'TAGAYTAY', 'TARLAC'];
+                // Filter items based on the category (uoi field)
+                const filteredItems = data.filter(item => item.uoi === category);
 
-                // Filter data for Boodle Flights
-                const filteredBoodleFlights = data.filter(item => allowedItemsBoodleFlights.includes(item.item));
-
-                // Filter data for Solo Flights
-                const filteredSoloFlight = data.filter(item => allowedItemsSoloFlight.includes(item.item));
-
-                // Filter data for A La Carte
-                const filteredALaCarte = data.filter(item => allowedItemsALaCarte.includes(item.item));
-
-                // Clear the menu grids before adding new items
-                const soloMenuGrid = document.getElementById('menu-grid-solo');
-                soloMenuGrid.innerHTML = '';
-
-                const boodleMenuGrid = document.getElementById('boodle-flights').querySelector('.menu-grid');
-                boodleMenuGrid.innerHTML = '';
-
-                const aLaCarteMenuGrid = document.getElementById('a-la-carte').querySelector('.menu-grid');
-                aLaCarteMenuGrid.innerHTML = '';
-
-                // Add items to Boodle Flights
-                filteredBoodleFlights.forEach(item => {
+                // Populate the container with filtered items
+                filteredItems.forEach(item => {
                     const menuItem = document.createElement('div');
                     menuItem.classList.add('menu-item');
-                    menuItem.setAttribute('data-category', 'boodle-flights');
+                    menuItem.setAttribute('data-category', category);
 
-                    const imageUrl = item.image_url.startsWith('http')
-                        ? item.image_url
-                        : `https://material-management-system-2.onrender.com${item.image_url}`;
+                    const imageUrl = `https://material-management-system-2.onrender.com${item.image_url}`;
 
                     menuItem.innerHTML = `
-                        <img src="${imageUrl}" alt="${item.item}" onerror="this.src='/path/to/default-image.jpg'">
+                        <img src="${imageUrl}" alt="${item.item}" onerror="this.src='/path/to/default-image.jpg'; console.log('Imahe hindi umiiral')">
                         <p>${item.item}</p>
                         <span>₱${item.price.toFixed(2)}</span>
                     `;
 
-                    boodleMenuGrid.appendChild(menuItem);
-                });
-
-                // Add items to Solo Flights
-                filteredSoloFlight.forEach(item => {
-                    const menuItem = document.createElement('div');
-                    menuItem.classList.add('menu-item');
-                    menuItem.setAttribute('data-category', 'solo-boodle-flight');
-
-                    const imageUrl = item.image_url.startsWith('http')
-                        ? item.image_url
-                        : `https://material-management-system-2.onrender.com${item.image_url}`;
-
-                    menuItem.innerHTML = `
-                        <img src="${imageUrl}" alt="${item.item}" onerror="this.src='/path/to/default-image.jpg'">
-                        <p>${item.item}</p>
-                        <span>₱${item.price.toFixed(2)}</span>
-                    `;
-
-                    soloMenuGrid.appendChild(menuItem);
-                });
-
-                // Add items to A La Carte
-                filteredALaCarte.forEach(item => {
-                    const menuItem = document.createElement('div');
-                    menuItem.classList.add('menu-item');
-                    menuItem.setAttribute('data-category', 'a-la-carte');
-
-                    const imageUrl = item.image_url.startsWith('http')
-                        ? item.image_url
-                        : `https://material-management-system-2.onrender.com${item.image_url}`;
-
-                    menuItem.innerHTML = `
-                        <img src="${imageUrl}" alt="${item.item}" onerror="this.src='/path/to/default-image.jpg'">
-                        <p>${item.item}</p>
-                        <span>₱${item.price.toFixed(2)}</span>
-                    `;
-
-                    aLaCarteMenuGrid.appendChild(menuItem);
+                    container.appendChild(menuItem);
                 });
             })
-            .catch(error => console.error('Error fetching inventory data:', error));
+            .catch(error => console.error(`Error fetching ${category} data:`, error));
     };
 
-    // Fetch and display inventory data on load
-    fetchAndDisplayInventory();
+    // Fetch items for each category based on the uoi field from the API
+    fetchAndDisplayCategoryItems('SOLO BOODLE FLIGHT', 'menu-grid-solo');
+    fetchAndDisplayCategoryItems('BOODLE FLIGHTS', 'menu-grid-boodle');
+    fetchAndDisplayCategoryItems('A LA CARTE', 'menu-grid-a-la-carte');
+    fetchAndDisplayCategoryItems('SINGLE FLIGHTS', 'menu-grid-single-flights');
+    fetchAndDisplayCategoryItems('INTERNATIONAL FLIGHTS', 'menu-grid-international-flights');
+    fetchAndDisplayCategoryItems('UNCLE D\'S ICE CREAM SANDWICH', 'menu-grid-uncle');
 
     // Add category filtering functionality
     categories.forEach(category => {
