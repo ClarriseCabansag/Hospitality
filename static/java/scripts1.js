@@ -180,7 +180,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-
 //ORDERSUMMARY
 document.addEventListener('DOMContentLoaded', function () {
     const emptyCart = document.getElementById('emptyCart');
@@ -232,6 +231,32 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Update the total amount display
         totalAmountElement.textContent = `₱${totalAmount.toFixed(2)}`;
+    }
+
+    // Function to delete an order item
+    function deleteOrderItem(button) {
+        const itemContainer = button.closest('.item-container');
+        itemContainer.remove(); // Remove the selected item
+
+        calculateTotalAmount(); // Recalculate the total after deletion
+
+        // Check if the cart is now empty
+        if (orderSummary.querySelectorAll('.item-container').length === 0) {
+            // Clear order ID and date
+            orderID = null;
+
+            // Remove order ID and date container
+            const orderContainer = orderSummary.querySelector('.order-container');
+            if (orderContainer) {
+                orderContainer.remove();
+            }
+
+            // Show the empty cart section
+            emptyCart.style.display = 'block';
+
+            // Hide the order options section
+            orderOptions.style.display = 'none';
+        }
     }
 
     // Event delegation for menu item image clicks (for all categories)
@@ -352,6 +377,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
+
+
 document.addEventListener("DOMContentLoaded", function() {
     // Get the required buttons and continue button
     const dineInButton = document.querySelector('.btn-dine-in');
@@ -395,6 +422,7 @@ document.addEventListener("DOMContentLoaded", function() {
         console.log("One or more required elements are missing.");
     }
 });
+
 
 
   // Function to fetch cashier name and update the page
