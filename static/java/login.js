@@ -90,7 +90,7 @@ document.getElementById('login-form').addEventListener('submit', function(event)
             // Redirection based on role
            if  (['Finance Manager', 'Accounting Staff', 'Accounting Clerk'].includes(role)) {
                 // Redirect to Material Management System
-                window.location.href = 'https://hospitality-fms.onrender.com/fms/';
+                window.location.href = 'https://hospitality-fms.onrender.com';
             } else if (role === 'Material Management') {
                 // Redirect to Finance/Accounting System
                 window.location.href = 'https://material-management-system-2.onrender.com/';
