@@ -1,8 +1,10 @@
+import json
 from datetime import datetime
 import requests
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 from models.Cashier import Cashier
 from models.Manager import Manager
+from models.order import Orders,OrderItem
 from models.Till import OpenTill
 from models.user import User
 from services.auth import authenticate_user, migrate_passwords
@@ -156,6 +158,125 @@ def sales_order():
     # Render the sales_order page for normal requests
     return render_template('sales_order.html')
 
+@app.route('/open_till', methods=['POST'])
+def open_till():
+    try:
+        data = request.get_json()
+        amount = data.get('amount')
+        time = data.get('time')  # Time passed from the frontend (formatted as AM/PM)
+        cashier_id = session.get('user_id')  # Get the cashier's user_id from the session
+
+        # Check for valid amount
+        if not amount or float(amount) <= 0:
+            return jsonify({'error': 'Invalid amount'}), 400
+
+        if not cashier_id:
+            return jsonify({'error': 'Cashier is not logged in'}), 400
+
+        # Get the cashier's username from the Cashier table
+        cashier = Cashier.query.filter_by(id=cashier_id).first()
+        if not cashier:
+            return jsonify({'error': 'Cashier not found'}), 400
+
+        cashier_username = cashier.username  # Get the cashier's username
+
+        # Get current date in YYYY-MM-DD format
+        current_date = datetime.now().strftime('%m-%d-%Y')  # Date in format: 2024-12-01
+
+        # Save to the database (assuming 'date' and 'time' columns exist in your OpenTill model)
+        new_till = OpenTill(amount=amount, time=time, date=current_date, cashier_id=cashier_id, cashier_username=cashier_username)
+        db.session.add(new_till)
+        db.session.commit()
+
+        # Set session variable to indicate the till has been opened
+        session['till_opened'] = True
+
+        return jsonify({'message': 'Till opened successfully', 'amount': amount, 'time': time, 'date': current_date, 'cashier_username': cashier_username}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+@app.route('/check_till_status', methods=['GET'])
+def check_till_status():
+    till_opened = session.get('till_opened', False)
+    return jsonify({'till_opened': till_opened})
+
+@app.route('/save_order', methods=['POST'])
+def save_order():
+    if not request.is_json:
+        return jsonify({'success': False, 'error': "Unsupported Media Type: Content-Type must be 'application/json'"}), 415
+
+    try:
+        data = request.get_json()
+
+        # Extract order details
+        order_id = data.get('orderID')
+        order_date = data.get('date')
+        items = data.get('items', [])
+        order_type = data.get('orderType')
+        total_amount = data.get('totalAmount')
+
+        if not order_id or not order_date or not items or not order_type or not total_amount:
+            return jsonify({'success': False, 'error': 'Incomplete order details'}), 400
+
+        # Save the order to the database
+        new_order = Orders(
+            order_id=order_id,
+            date=order_date,
+            order_type=order_type,
+            total_amount=total_amount
+        )
+        db.session.add(new_order)
+
+        # Save each item
+        for item in items:
+            order_item = OrderItem(
+                order_id=order_id,
+                item_name=item['name'],
+                item_price=item['price'],
+                quantity=item['quantity']
+            )
+            db.session.add(order_item)
+
+        db.session.commit()
+
+        return jsonify({'success': True}), 200
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/get_orders', methods=['GET'])
+def get_orders():
+    try:
+        # Query all orders
+        orders = Orders.query.all()
+
+        # Prepare data to return
+        result = []
+        for order in orders:
+            order_items = OrderItem.query.filter_by(order_id=order.order_id).all()
+            items = [
+                {
+                    'item_name': item.item_name,
+                    'item_price': item.item_price,
+                    'quantity': item.quantity
+                }
+                for item in order_items
+            ]
+
+            result.append({
+                'order_id': order.order_id,
+                'date': order.date,
+                'order_type': order.order_type,
+                'total_amount': order.total_amount,
+                'items': items
+            })
+
+        return jsonify({'success': True, 'orders': result}), 200
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 
 @app.route('/api/inventory_data')
 def get_inventory_data():
@@ -170,30 +291,6 @@ def get_inventory_data():
         return jsonify({"error": "Failed to fetch inventory data"}), response.status_code
 
 
-
-@app.route('/open_till', methods=['POST'])
-def open_till():
-    try:
-        data = request.get_json()
-        amount = data.get('amount')
-        time = data.get('time')  # Time passed from the frontend (formatted as AM/PM)
-
-        # Get current date in YYYY-MM-DD format
-        current_date = datetime.now().strftime('%m-%d-%Y')  # Date in format: 2024-12-01
-
-        # Check for valid amount
-        if not amount or float(amount) <= 0:
-            return jsonify({'error': 'Invalid amount'}), 400
-
-        # Save to the database (assuming 'date' and 'time' columns exist in your OpenTill model)
-        new_till = OpenTill(amount=amount, time=time, date=current_date)
-        db.session.add(new_till)
-        db.session.commit()
-
-        return jsonify({'message': 'Till opened successfully', 'amount': amount, 'time': time, 'date': current_date}), 200
-
-    except Exception as e:
-        return jsonify({'error': str(e)}), 400
 
 
 
