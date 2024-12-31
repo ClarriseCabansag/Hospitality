@@ -8,6 +8,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
     let tillAmount = "";
 
+    // Check if till has already been opened (check session variable)
+    fetch('/check_till_status')  // Create an endpoint that returns the status of till
+        .then(response => response.json())
+        .then(data => {
+            if (data.till_opened) {
+                // If till is already opened, hide the popup and set the state
+                openTillAmount.style.display = "none";
+                popup.style.display = "none";
+            }
+        })
+        .catch(error => console.error('Error:', error));
+
     // Handle Yes button in the popup
     btnYes.addEventListener("click", function () {
         popup.style.display = "none";
@@ -378,46 +390,99 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 
-
 document.addEventListener("DOMContentLoaded", function() {
     // Get the required buttons and continue button
     const dineInButton = document.querySelector('.btn-dine-in');
     const takeOutButton = document.querySelector('.btn-take-out');
-    const continueButton = document.getElementById("continueButton"); // Get the continue button
+    const continueButton = document.getElementById("continueButton");
 
-    // Check if the elements exist before proceeding
+    // Function to collect order details
+    function collectOrderDetails() {
+        const orderDetails = {
+            orderID: null,
+            date: null,
+            items: [],
+            orderType: null,
+            totalAmount: null,
+        };
+
+        // Get Order ID and Date
+        const orderContainer = document.querySelector('.order-container');
+        if (orderContainer) {
+            orderDetails.orderID = orderContainer.querySelector('p:nth-child(2)').textContent;
+            orderDetails.date = orderContainer.querySelector('div:nth-child(2) p:nth-child(2)').textContent;
+        }
+
+        // Get Menu Items and Quantities
+        const items = document.querySelectorAll('.item-container');
+        items.forEach(item => {
+            const itemName = item.querySelector('.order-item-content p').textContent;
+            const itemPrice = parseFloat(item.querySelector('.order-item-content span').textContent.replace(/[^\d.-]/g, ''));
+            const itemQuantity = parseInt(item.querySelector('.quantity').textContent, 10);
+
+            orderDetails.items.push({
+                name: itemName,
+                price: itemPrice,
+                quantity: itemQuantity,
+            });
+        });
+
+        // Get Order Type
+        if (dineInButton.classList.contains('clicked')) {
+            orderDetails.orderType = 'Dine In';
+        } else if (takeOutButton.classList.contains('clicked')) {
+            orderDetails.orderType = 'Take Out';
+        }
+
+        // Get Total Amount
+        const totalAmountElement = document.getElementById('totalAmount');
+        if (totalAmountElement) {
+            orderDetails.totalAmount = parseFloat(totalAmountElement.textContent.replace(/[^\d.-]/g, ''));
+        }
+
+        return orderDetails;
+    }
+
     if (dineInButton && takeOutButton && continueButton) {
-        // Add event listener for the continue button
-        continueButton.addEventListener("click", function() {
-            console.log("Continue button clicked");
+        continueButton.addEventListener("click", async function() {
+            const orderDetails = collectOrderDetails();
 
-            // Check if Dine In or Take Out is clicked
-            if (dineInButton.classList.contains('clicked')) {
-                console.log("Dine In selected");
-                window.location.href = '/seats'; // Navigate to seats page
-            } else if (takeOutButton.classList.contains('clicked')) {
-                console.log("Take Out selected");
-                window.location.href = '/payment'; // Navigate to payment page
-            } else {
-                console.log("Neither Dine In nor Take Out selected");
+            try {
+                const response = await fetch('/save_order', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(orderDetails),
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert('Order saved successfully!');
+                    if (orderDetails.orderType === 'Dine In') {
+                        window.location.href = '/seats';
+                    } else {
+                        window.location.href = '/payment';
+                    }
+                } else {
+                    alert('Failed to save the order: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Error saving order:', error);
+                alert('An error occurred while saving the order.');
             }
         });
 
-        // Toggle the 'clicked' class when Dine In or Take Out is clicked
+        // Toggle 'clicked' class for order type selection
         dineInButton.addEventListener('click', function() {
-            // Remove 'clicked' class from take-out button if it's added
             takeOutButton.classList.remove('clicked');
-            // Toggle 'clicked' class for dine-in button
             dineInButton.classList.toggle('clicked');
         });
 
         takeOutButton.addEventListener('click', function() {
-            // Remove 'clicked' class from dine-in button if it's added
             dineInButton.classList.remove('clicked');
-            // Toggle 'clicked' class for take-out button
             takeOutButton.classList.toggle('clicked');
         });
-
     } else {
         console.log("One or more required elements are missing.");
     }
@@ -445,4 +510,3 @@ document.addEventListener("DOMContentLoaded", function() {
 
         // Call the function when the page loads
         window.onload = loadCashierName;
-
