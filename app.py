@@ -201,6 +201,36 @@ def check_till_status():
     till_opened = session.get('till_opened', False)
     return jsonify({'till_opened': till_opened})
 
+@app.route('/get_open_till', methods=['GET'])
+def get_open_till():
+    try:
+        # Retrieve cashier ID from the session
+        cashier_id = session.get('user_id')
+        if not cashier_id:
+            return jsonify({'success': False, 'message': 'Cashier is not logged in'}), 400
+
+        # Query the OpenTill model for the most recent till entry for this cashier
+        open_till = OpenTill.query.filter_by(cashier_id=cashier_id).order_by(OpenTill.date.desc()).first()
+
+        if not open_till:
+            return jsonify({'success': False, 'message': 'No till found for the current cashier'}), 404
+
+        # Return the till details as JSON
+        return jsonify({
+            'success': True,
+            'data': {
+                'amount': open_till.amount,
+                'time': open_till.time,
+                'date': open_till.date,
+                'cashier_id': open_till.cashier_id,
+                'cashier_username': open_till.cashier_username
+            }
+        }), 200
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 @app.route('/save_order', methods=['POST'])
 def save_order():
     if not request.is_json:
