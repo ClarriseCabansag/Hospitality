@@ -15,3 +15,5 @@ class Cashier(db.Model):
         self.last_name = last_name
         self.username = username
         self.passcode = passcode  # No hashing
+
+
