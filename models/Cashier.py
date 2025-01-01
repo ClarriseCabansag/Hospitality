@@ -9,6 +9,7 @@ class Cashier(db.Model):
     username = db.Column(db.String(15), nullable=False, unique=True)
     passcode = db.Column(db.String(255), nullable=False)  # Keep it as plaintext
     date_created = db.Column(db.DateTime, default=db.func.current_timestamp())
+    tills = db.relationship('OpenTill', back_populates='cashier')
 
     def __init__(self, name, last_name, username, passcode):
         self.name = name
