@@ -191,7 +191,7 @@ def open_till():
         # Set session variable to indicate the till has been opened
         session['till_opened'] = True
 
-        return jsonify({'message': 'Till opened successfully', 'amount': amount, 'time': time, 'date': current_date, 'cashier_username': cashier_username}), 200
+        return jsonify({'message': 'Till opened successfully', 'amount': amount, 'time': time, 'date': current_date, 'cashier_id': cashier_id 'cashier_username': cashier_username}), 200
 
     except Exception as e:
         return jsonify({'error': str(e)}), 400
