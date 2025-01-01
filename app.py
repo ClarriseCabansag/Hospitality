@@ -184,14 +184,18 @@ def open_till():
         current_date = datetime.now().strftime('%m-%d-%Y')  # Date in format: 2024-12-01
 
         # Save to the database (assuming 'date' and 'time' columns exist in your OpenTill model)
-        new_till = OpenTill(amount=amount, time=time, date=current_date, cashier_id=cashier_id, cashier_username=cashier_username)
+        new_till = OpenTill(amount=amount,
+                            time=time,
+                            date=current_date,
+                            cashier_id=cashier_id,
+                            cashier_username=cashier_username)
         db.session.add(new_till)
         db.session.commit()
 
         # Set session variable to indicate the till has been opened
         session['till_opened'] = True
 
-        return jsonify({'message': 'Till opened successfully', 'amount': amount, 'time': time, 'date': current_date, 'cashier_id': cashier_id, 'cashier_username': cashier_username}), 200
+        return jsonify({'message': 'Till opened successfully', 'amount': amount, 'time': time, 'date': current_date, 'cashier_id':cashier_id, 'cashier_username': cashier_username}), 200
 
     except Exception as e:
         return jsonify({'error': str(e)}), 400
@@ -200,36 +204,6 @@ def open_till():
 def check_till_status():
     till_opened = session.get('till_opened', False)
     return jsonify({'till_opened': till_opened})
-
-@app.route('/get_open_till', methods=['GET'])
-def get_open_till():
-    try:
-        # Retrieve cashier ID from the session
-        cashier_id = session.get('user_id')
-        if not cashier_id:
-            return jsonify({'success': False, 'message': 'Cashier is not logged in'}), 400
-
-        # Query the OpenTill model for the most recent till entry for this cashier
-        open_till = OpenTill.query.filter_by(cashier_id=cashier_id).order_by(OpenTill.date.desc()).first()
-
-        if not open_till:
-            return jsonify({'success': False, 'message': 'No till found for the current cashier'}), 404
-
-        # Return the till details as JSON
-        return jsonify({
-            'success': True,
-            'data': {
-                'amount': open_till.amount,
-                'time': open_till.time,
-                'date': open_till.date,
-                'cashier_id': open_till.cashier_id,
-                'cashier_username': open_till.cashier_username
-            }
-        }), 200
-
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
 
 @app.route('/save_order', methods=['POST'])
 def save_order():
