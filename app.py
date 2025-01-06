@@ -280,8 +280,6 @@ def get_orders():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-
-
 @app.route('/api/inventory_data')
 def get_inventory_data():
     # Fetch data from the external inventory API
@@ -549,7 +547,39 @@ def delete_cashier(cashier_id):
 
 @app.route('/inventory_management')
 def inventory_management():
-    return render_template('inventory_management.html')
+    api_url = "https://material-management-system-2.onrender.com/api/inventory_summary"
+    try:
+        response = requests.get(api_url)
+        response.raise_for_status()  # Raise an error for HTTP issues
+        inventory_data = response.json()  # Assuming the API returns JSON data
+
+        # Sort data by date (assuming 'date' is in the format '10 December 2024')
+        inventory_data = sorted(
+            inventory_data,
+            key=lambda x: datetime.strptime(x['date'], "%d %B %Y")  # Adjust format here
+        )
+    except requests.RequestException as e:
+        print(f"Error fetching data from API: {e}")
+        inventory_data = []  # Fallback to empty data in case of errors
+
+    return render_template('inventory_management.html', inventory_data=inventory_data)
+
+@app.route('/api/inventory_data')
+def inventory_data():
+    api_url = "https://material-management-system-2.onrender.com/api/inventory_summary"
+    try:
+        response = requests.get(api_url)
+        response.raise_for_status()
+        inventory_data = response.json()
+        inventory_data = sorted(
+            inventory_data,
+            key=lambda x: datetime.strptime(x['date'], "%d %B %Y")
+        )
+    except requests.RequestException as e:
+        print(f"Error fetching data from API: {e}")
+        inventory_data = []
+
+    return jsonify(inventory_data)
 
 @app.route('/cashier_summary')
 def cashier_summary():
