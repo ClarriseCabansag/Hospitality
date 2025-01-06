@@ -25,6 +25,7 @@ h2 {
     width: 100%;
     margin-bottom: 20px;
     border-collapse: collapse;
+    table-layout: fixed; /* Ensures equal column widths */
 }
 
 .table th,
@@ -32,11 +33,17 @@ h2 {
     padding: 10px;
     border: 1px solid #ccc;
     text-align: center;
+    word-wrap: break-word; /* Prevents content overflow */
 }
 
 .table th {
-    background-color: #f5f5f5;
+    background-color: #c8131a;
     font-weight: bold;
+    color: white;
+}
+
+.table tbody tr {
+    background-color: #ffffff; /* White background for tbody rows */
 }
 
 .table-danger td {
