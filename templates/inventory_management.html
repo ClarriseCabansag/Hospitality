@@ -6,68 +6,24 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/inventory.css') }}">
 {% endblock %}
 
-
+{% block js %}
+<script src="{{ url_for('static', filename='java/inventory.js') }}" defer></script>
+{% endblock %}
 {% block content %}
 <div class="container">
     <h2>Inventory Management</h2>
     <table class="table table-bordered">
         <thead>
             <tr>
-                <th>UID</th>
+                <th>UOI</th>
                 <th>Item Name</th>
                 <th>Stock</th>
-                <th>Price</th>
                 <th>Date</th>
             </tr>
         </thead>
-        <tbody>
-            <tr class="table-danger">
-                <td colspan="5"><b>Today</b></td>
-            </tr>
+        <tbody id="inventory-table">
             <tr>
-                <td>001</td>
-                <td>CATICLAN</td>
-                <td>10</td>
-                <td>950.00</td>
-                <td>08/13/24</td>
-            </tr>
-            <tr>
-                <td>002</td>
-                <td>BOHOL</td>
-                <td>200</td>
-                <td>699.00</td>
-                <td>08/13/24</td>
-            </tr>
-            <tr>
-                <td>003</td>
-                <td>TAGAYTAY</td>
-                <td>46</td>
-                <td>299.00</td>
-                <td>08/13/24</td>
-            </tr>
-            <tr class="table-danger">
-                <td colspan="5"><b>Yesterday</b></td>
-            </tr>
-            <tr>
-                <td>004</td>
-                <td>FLIGHT 002</td>
-                <td>20</td>
-                <td>299.00</td>
-                <td>08/12/24</td>
-            </tr>
-            <tr>
-                <td>005</td>
-                <td>BELGIUM</td>
-                <td>300</td>
-                <td>299.00</td>
-                <td>08/12/24</td>
-            </tr>
-            <tr>
-                <td>006</td>
-                <td>FLIGHT 001</td>
-                <td>79</td>
-                <td>399.00</td>
-                <td>08/12/24</td>
+                <td colspan="4" class="text-center">Loading data...</td>
             </tr>
         </tbody>
     </table>
