@@ -62,6 +62,8 @@
 </section>
 
 
+
+
 </main>
 
 <aside class="order-summary">
@@ -86,28 +88,37 @@
     <button id="continueButton">Continue</button>
 </div>
 
-</aside>
-<div id="editpopupContainer" class="edit-popup-container hidden">
-    <div class="edit-popup-content">
-        <h3>Add Request</h3>
-        <textarea id="notesInput" placeholder="Enter Request here:"></textarea>
-        <div class="edit-popup-buttons">
-            <button id="saveNotes">Save</button>
-            <button id="cancelPopup">Cancel</button>
+<div id="noteModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <h3>Add Notes</h3>
+        <textarea id="noteInput" placeholder="Enter your notes here"></textarea>
+        <div class="modal-buttons">
+            <button id="addNoteButton">Add</button>
+            <button id="cancelNoteButton">Cancel</button>
         </div>
     </div>
 </div>
-
-
-<div class="popup-container" id="popup">
-<div class="popup-content">
-    <h2>No open Till</h2>
-        <p>Would you like to open till?</p>
-<div class="popup-buttons">
-    <button class="btn-no" id="btnNo">NO</button>
-    <button class="btn-yes" id="btnYes">YES</button>
+</aside>
+<div class="open-till-container" id="openTillAmount" style="display: none;">
+    <div class="open-till-content">
+    <h2>Open Till Amount</h2>
+    <input type="text" class="till-amount-display" disabled />
+<div class="keypad">
+    <button>1</button>
+    <button>2</button>
+    <button>3</button>
+    <button>4</button>
+    <button>5</button>
+    <button>6</button>
+    <button>7</button>
+    <button>8</button>
+    <button>9</button>
+    <button>.</button>
+    <button>0</button>
+    <button><i class="fas fa-backspace"></i></button>
+</div>
+<button class="btn-open-drawer">Open Drawer</button>
 </div>
 </div>
-
-</div>
+<!-- Remove the popup code entirely -->
 {% endblock %}
