@@ -3,83 +3,116 @@
 {% block title %}Payment{% endblock %}
 
 {% block head %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/payment.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/payment.css') }}">
 {% endblock %}
 
+{% block js %}
+<script src="{{ url_for('static', filename='java/payment.js') }}"></script>
+{% endblock %}
 
 {% block content %}
-    <div class="payment-content">
-        <div class="payment-header">
-            <h1>Payment</h1>
-        </div>
-        <div class="payment-container">
-            <div class="order-summary">
-                <h2>Order ID </h2>
-                <div class="order-info">
-                    <p>August 16, 2024</p>
-                    <p>Order Type</p>
-                </div>
-                <hr class="order-info-separator">
-                <hr>
-                <div class="order-totals">
-                    <div class="subtotal">
-                        <p>Subtotal</p>
-                        <p>0.00</p>
-                    </div>
-                    <div class="tax">
-                        <p>Tax 5%</p>
-                        <p>₱0.00</p>
-                    </div>
-                
-                    <div class="total">
-                        <p>Total Amount</p>
-                        <p>₱0.00</p>
-                    </div>
-                </div>
-                <div class="payment-summary">
-                    <p>Cash <span class="amount">₱0.00</span></p>
-                    <p>Change <span class="amount">₱0.00</span></p>
-                </div>
-                
-                <button class="confirm-btn">
-                    <i class="fas fa-wallet"></i> Confirm Payment
-                </button>
+<div class="payment-content">
+    <div class="payment-header">
+        <h1>Payment</h1>
+    </div>
+    <div class="payment-container">
+        <!-- Order Summary -->
+        <div class="order-summary">
+            <div class="order-id-row">
+                <span>Order ID</span>
+                <span class="order-id-value">{{ order_id or 'Order ID Not Available' }}</span>
             </div>
-            
-            <div class="summary-container">
-                <div class="discount-summary">
-                    <div class="discount-header">
-                        <h2>Discount</h2>
-                        <div class="tabs">
-                            <button class="tab-btn active">Senior</button>
-                            <button class="tab-btn">PWD</button>
-                        </div>
-                    </div>
-                    <div class="input-fields">
-                        <input type="text" placeholder="Enter Name">
-                        <input type="text" placeholder="Enter Account Number">
-                    </div>
-                    <div class="discount-actions">
-                        <button class="cancel-btn">Cancel</button>
-                        <button class="apply-btn">Apply</button>
+            <div class="order-info">
+                <p>{{ order_date or 'Date Not Available' }}</p>
+                <p>{{ order_type or 'Order Type Not Available' }}</p>
+            </div>
+            <hr class="order-info-separator">
+            <div class="order-totals">
+                <div class="subtotal">
+                    <p>Subtotal</p>
+                    <p>₱{{ subtotal or '0.00' }}</p>
+                </div>
+                <div class="tax">
+                    <p>Tax 5%</p>
+                    <p>₱{{ "%.2f"|format(subtotal * 0.05) if subtotal else '0.00' }}</p>
+                </div>
+                <!-- Discount Section -->
+                <div class="discount-section" style="display: none;">
+                    <div class="discount-line">
+                        <span id="discount-type">Discount Type: </span> <!-- This will display the actual discount type -->
+                        <span id="discount-amount">20%</span>
                     </div>
                 </div>
-                
-                <div class="payment-method">
-                    <h2>Payment Method</h2>
+                <div class="total">
+                    <p>Total Amount</p>
+                    <p id="total-amount">₱{{ "%.2f"|format(subtotal * 1.05) if subtotal else '0.00' }}</p>
+                </div>
+            </div>
+
+            <div class="payment-summary">
+                <div class="payment-row">
+                    <p class="label">Cash:</p>
+                    <input id="cash-input" type="number" placeholder="Enter cash amount">
+                </div>
+                <div class="payment-row">
+                    <p class="label">Change:</p>
+                    <p id="change-amount">₱0.00</p>
+                </div>
+            </div>
+
+            <button class="confirm-btn">
+                <i class="fas fa-wallet"></i> Confirm Payment
+            </button>
+        </div>
+
+        <!-- Summary Container -->
+        <div class="summary-container">
+            <!-- Discount Summary -->
+            <div class="discount-summary">
+                <div class="discount-header">
+                    <h2>Discount</h2>
                     <div class="tabs">
-                        <button class="tab-btn active">Cash</button>
-                        <button class="tab-btn">Other Modes</button>
+                        <button class="tab-btn active" id="senior-btn">Senior</button>
+                        <button class="tab-btn" id="pwd-btn">PWD</button>
                     </div>
-                    <div class="payment-input">
-                        <input type="text" placeholder="Enter amount" value="₱480.00">
-                    </div>
-                    <div class="payment-actions">
-                        <button class="cancel-btn">Cancel</button>
-                        <button class="add-btn">Add</button>
-                    </div>
+                </div>
+                <div class="input-fields">
+                    <input type="text" placeholder="Enter Name">
+                    <input type="text" placeholder="Enter Account Number">
+                </div>
+                <div class="discount-actions">
+                    <button class="cancel-btn">Cancel</button>
+                    <button class="apply-btn">Apply</button>
+                </div>
+            </div>
+
+            <!-- Payment Method -->
+            <div class="payment-method">
+                <h2>Payment Method</h2>
+                <div class="tabs">
+                    <button class="tab-btn active">Cash</button>
+                    <button class="tab-btn">Other Modes</button>
+                </div>
+                <div class="payment-input">
+                    <input type="text" placeholder="Enter amount" value="₱{{ default_amount or '480.00' }}">
+                </div>
+                <div class="payment-actions">
+                    <button class="cancel-btn">Cancel</button>
+                    <button class="add-btn">Add</button>
                 </div>
             </div>
         </div>
     </div>
+</div>
+
+<!-- Payment Modal -->
+<div class="modal" id="paymentModal" style="display: none;">
+    <div class="modal-content">
+        <div class="success-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <p><h2>Payment Successful!</h2></p>
+        <button id="closeModalButton" class="done-btn">Print Official Receipt</button>
+    </div>
+</div>
 {% endblock %}
