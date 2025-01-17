@@ -421,22 +421,17 @@ body {
 }
 
 .tab-btn.active {
-    flex: 1;
-    padding: 10px;
-    font-size: 18px;
-    background-color: #f1f1f1;
-    border: 2px solid #ddd;
-    border-radius: 5px;
-    cursor: pointer;
-    text-align: center;
-    transition: background-color 0.3s ease;
-
+    background-color: #c8131a !important; /* Red when active */
+    color: white !important;
+    font-weight: bold;
+    border: 2px solid #d32f2f;
 }
 
 .tab-btn:hover {
-    background-color:#c8131a
-    ;
+    background-color: #c8131a;
+    color: white;
 }
+
 
 /* Input Fields: Styled for consistency */
 .input-fields input {
@@ -525,4 +520,137 @@ body {
 .payment-input input:focus {
     border-color: #c8131a;
     outline: none;
-}   
+}
+
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    width: 200px;
+    height: 200px;
+}
+
+.success-icon {
+    font-size: 50px;
+    color: green;
+    margin-bottom: 15px;
+}
+
+.done-btn {
+    background-color: #c8131a;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.done-btn:hover {
+    background-color: darkred;
+}
+
+.tab-btn.active {
+    background-color: #c8131a; /* Example active color */
+    color: white;
+    font-weight: bold;
+    border: 2px solid #d32f2f;
+    border-radius: 4px;
+}
+
+.order-id-row {
+    display: flex;
+    justify-content: space-between; /* Align the label and value on opposite sides */
+    align-items: center; /* Center-align vertically */
+    margin-bottom: 10px; /* Space below the row */
+    font-size: 20px; /* Adjust the font size */
+    font-weight:bold;
+}
+
+.order-id-value {
+    text-align: right; /* Align text to the right */
+    font-size: 16px; /* Same font size as the label */
+    color: #333; /* Optional: customize the color */
+    white-space: nowrap; /* Prevent text wrapping */
+}
+
+.payment-summary {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.payment-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.payment-row .label {
+    font-size: 16px;
+    font-weight: bold;
+    margin-right: 10px;
+    text-align: right;
+    flex: 1; /* Ensures labels align properly */
+}
+
+.payment-row input {
+    flex: 2; /* Input field takes up more space */
+    padding: 5px;
+    font-size: 16px;
+}
+
+.payment-row #change-amount {
+    flex: 2; /* Same width as the input field for consistent alignment */
+    text-align: left;
+    font-size: 16px;
+    font-weight: bold;
+}
+#cash-input {
+    -moz-appearance: textfield; /* Firefox */
+}
+
+#cash-input::-webkit-inner-spin-button,
+#cash-input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0; /* Removes default margin */
+}
+.discount-section {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    font-size: 16px;
+}
+
+.discount-line {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    border-bottom: 1px solid #ddd; /* Creates the line */
+    padding: 5px 0;
+}
+
+.discount-line span:nth-child(1) {
+    flex: 1;
+    text-align: left;
+}
+
+.discount-line span:nth-child(2) {
+    flex: 1;
+    text-align: right;
+}
