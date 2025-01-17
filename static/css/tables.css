@@ -774,6 +774,55 @@ textarea {
 }
 
 
+/*MODAL for edit order*/
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    background-color: #fff;
+    margin: 15% auto;
+    padding: 20px;
+    border-radius: 8px;
+    width: 300px;
+    text-align: center;
+}
+
+.modal-buttons {
+    margin-top: 10px;
+}
+
+.modal-buttons button {
+    margin: 5px;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#addNoteButton {
+    background-color: #c8131a;
+    color: #fff;
+}
+
+#cancelNoteButton {
+    background-color: #fff;
+    color: #000;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
 
 /* Style for the total amount container */
 .total-amount-container {
