@@ -6,6 +6,7 @@ from models.Cashier import Cashier
 from models.Manager import Manager
 from models.order import Orders,OrderItem
 from models.Till import OpenTill
+from models.payment import Payment
 from models.user import User
 from services.auth import authenticate_user, migrate_passwords
 from services.token_service import create_token, decode_token
@@ -146,7 +147,6 @@ def sales_order():
 
     if action == 'open_till':
         # Perform logic to handle "Open Till" (e.g., database update, logging)
-        # Example logic:
         try:
             # Simulate opening the till
             print("Till opened successfully.")
@@ -156,7 +156,9 @@ def sales_order():
             return jsonify(success=False)
 
     # Render the sales_order page for normal requests
-    return render_template('sales_order.html')
+    till_opened = session.get('till_opened', False)  # Get the status of till
+    return render_template('sales_order.html', till_opened=till_opened)
+
 
 @app.route('/open_till', methods=['POST'])
 def open_till():
@@ -183,7 +185,6 @@ def open_till():
         # Get current date in YYYY-MM-DD format
         current_date = datetime.now().strftime('%m-%d-%Y')  # Date in format: 2024-12-01
 
-        # Save to the database (assuming 'date' and 'time' columns exist in your OpenTill model)
         new_till = OpenTill(amount=amount,
                             time=time,
                             date=current_date,
@@ -195,20 +196,70 @@ def open_till():
         # Set session variable to indicate the till has been opened
         session['till_opened'] = True
 
-        return jsonify({'message': 'Till opened successfully', 'amount': amount, 'time': time, 'date': current_date, 'cashier_id':cashier_id, 'cashier_username': cashier_username}), 200
+        return jsonify({'message': 'Till opened successfully',
+                        'amount': amount,
+                        'time': time,
+                        'date': current_date,
+                        'cashier_id':cashier_id,
+                        'cashier_username': cashier_username}), 200
 
     except Exception as e:
         return jsonify({'error': str(e)}), 400
+
+@app.route('/open_till', methods=['GET'])
+def get_open_tills():
+    try:
+        # Query parameters
+        date = request.args.get('date')  # Filter by date (optional)
+        cashier_id = request.args.get('cashier_id')  # Filter by cashier_id (optional)
+
+        # Base query
+        query = OpenTill.query
+
+        # Apply filters if provided
+        if date:
+            query = query.filter_by(date=date)
+        if cashier_id:
+            query = query.filter_by(cashier_id=cashier_id)
+
+        # Execute query and fetch results
+        tills = query.all()
+
+        # If no records are found
+        if not tills:
+            return jsonify({'message': 'No till records found'}), 404
+
+        # Prepare response
+        till_list = [
+            {
+                'id': till.id,
+                'amount': till.amount,
+                'time': till.time,
+                'date': till.date,
+                'cashier_id': till.cashier_id,
+                'cashier_username': till.cashier_username,
+                'close_time': till.close_time
+            }
+            for till in tills
+        ]
+
+        return jsonify({'tills': till_list}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
 
 @app.route('/check_till_status', methods=['GET'])
 def check_till_status():
     till_opened = session.get('till_opened', False)
     return jsonify({'till_opened': till_opened})
 
+
 @app.route('/save_order', methods=['POST'])
 def save_order():
     if not request.is_json:
-        return jsonify({'success': False, 'error': "Unsupported Media Type: Content-Type must be 'application/json'"}), 415
+        return jsonify({'success': False, 'error': "Unsupported Media Type: Content-Type "
+                                                   "must be 'application/json'"}), 415
 
     try:
         data = request.get_json()
@@ -244,10 +295,20 @@ def save_order():
 
         db.session.commit()
 
-        return jsonify({'success': True}), 200
+        # Store order details in session
+        session['payment_data'] = {
+            'order_id': order_id,
+            'order_date': order_date,
+            'order_type': order_type,
+            'subtotal': total_amount
+        }
+
+        return jsonify({'success': True, 'redirect_url': url_for('payment')}), 200
 
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
+
 
 @app.route('/get_orders', methods=['GET'])
 def get_orders():
@@ -282,7 +343,6 @@ def get_orders():
 
 @app.route('/api/inventory_data')
 def get_inventory_data():
-    # Fetch data from the external inventory API
     inventory_url = "https://material-management-system-2.onrender.com/api/inventory_summary"
     response = requests.get(inventory_url)
 
@@ -291,9 +351,6 @@ def get_inventory_data():
         return jsonify(inventory_data)
     else:
         return jsonify({"error": "Failed to fetch inventory data"}), response.status_code
-
-
-
 
 
 @app.route('/main')
@@ -440,9 +497,42 @@ def get_cashier_name():
 def seats():
     return render_template('seats.html')
 
-@app.route('/payment')
+
+@app.route('/payment', methods=['GET'])
 def payment():
-    return render_template('payment.html')
+    payment_data = session.get('payment_data', {})
+    return render_template('payment.html', **payment_data)
+
+@app.route('/save_payment', methods=['POST'])
+def save_payment():
+    payment_data = request.get_json()
+
+    # Extract data from the JSON payload
+    order_id = payment_data.get('order_id')
+    subtotal = payment_data.get('subtotal')
+    tax = payment_data.get('tax')
+    total = payment_data.get('total')
+    cash_received = payment_data.get('cash_received')
+    change = payment_data.get('change')
+    discount_type = payment_data.get('discount_type', None)
+    discount_percentage = payment_data.get('discount_percentage', 0)
+
+    # Example: Saving to the database (update this based on your model)
+    new_payment = Payment(
+        order_id=order_id,
+        subtotal=subtotal,
+        tax=tax,
+        total=total,
+        cash_received=cash_received,
+        change=change,
+        discount_type=discount_type,
+        discount_percentage=discount_percentage
+    )
+    db.session.add(new_payment)
+    db.session.commit()
+
+    return jsonify({'success': True, 'message': 'Payment saved successfully'})
+
 
 @app.route('/order_history')
 def order_history():
