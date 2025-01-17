@@ -1,68 +1,63 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const popup = document.getElementById("popup");
     const openTillAmount = document.getElementById("openTillAmount");
     const tillAmountDisplay = document.querySelector(".till-amount-display");
     const keypadButtons = document.querySelectorAll(".keypad button");
-    const btnYes = document.getElementById("btnYes");
-    const btnNo = document.getElementById("btnNo");
+    const deleteButton = document.querySelector('button i.fas.fa-backspace'); // Target the icon inside the button
 
     let tillAmount = "";
 
     // Check if till has already been opened (check session variable)
-    fetch('/check_till_status')  // Create an endpoint that returns the status of till
+    fetch('/check_till_status')
         .then(response => response.json())
         .then(data => {
             if (data.till_opened) {
-                // If till is already opened, hide the popup and set the state
                 openTillAmount.style.display = "none";
-                popup.style.display = "none";
+            } else {
+                openTillAmount.style.display = "block";
             }
         })
         .catch(error => console.error('Error:', error));
-
-    // Handle Yes button in the popup
-    btnYes.addEventListener("click", function () {
-        popup.style.display = "none";
-        openTillAmount.style.display = "block";
-    });
-
-    // Handle No button in the popup
-    btnNo.addEventListener("click", function () {
-        popup.style.display = "none";
-    });
 
     // Handle keypad input
     keypadButtons.forEach(button => {
         button.addEventListener("click", function () {
             const value = this.textContent;
-            if (value === "⌫") {
-                tillAmount = tillAmount.slice(0, -1);
+            if (value !== "⌫") {
+                tillAmount += value; // Add the number to tillAmount
             } else {
-                tillAmount += value;
+                tillAmount = tillAmount.slice(0, -1);  // Remove last character
             }
             tillAmountDisplay.value = tillAmount;
         });
     });
 
-    function validateInput(value) {
-        // Remove any non-digit characters and return only digits
-        return value.replace(/[^0-9]/g, '');
+    // Handle delete via custom delete button (backspace icon button)
+    if (deleteButton) {
+        deleteButton.closest('button').addEventListener('click', function() {
+            console.log('Delete button clicked');
+            tillAmount = tillAmount.slice(0, -1); // Remove last character when custom delete button is clicked
+            tillAmountDisplay.value = tillAmount;  // Update the display
+        });
+    } else {
+        console.log('Delete button not found');
     }
 
-    // Handle keyboard input for the till amount display
+    // Handle delete via Backspace key
     tillAmountDisplay.addEventListener("keydown", function (event) {
-        // Allow only numeric keys and basic control keys
-        if (event.key === "Backspace" || event.key === "ArrowLeft" || event.key === "ArrowRight" || event.key === "ArrowUp" || event.key === "ArrowDown" || event.key === "Tab" || event.key === "Enter") {
-            return;
-        }
-        if (event.key < "0" || event.key > "9") {
-            event.preventDefault();
+        if (event.key === "Backspace") {
+            tillAmount = tillAmount.slice(0, -1);  // Remove last character when backspace is pressed
+            tillAmountDisplay.value = tillAmount;  // Update the display
+            console.log('Backspace pressed, tillAmount:', tillAmount); // Debugging line
         }
     });
 
-    // Ensure input field only contains integer values
+    // Clean the input field to allow only numbers
+    function validateInput(value) {
+        return value.replace(/[^0-9]/g, '');  // Keep only numeric values
+    }
+
     tillAmountDisplay.addEventListener("input", function () {
-        this.value = validateInput(this.value);
+        this.value = validateInput(this.value);  // Clean input field
     });
 
     // Capture and send the current time in 12-hour format (AM/PM)
@@ -125,34 +120,37 @@ document.addEventListener('DOMContentLoaded', function () {
         fetch('/api/inventory_data')
             .then(response => response.json())
             .then(data => {
-                // Clear any existing items
+                console.log(`Fetched Data for ${category}:`, data);
+
+                // Clear the container
                 const container = document.getElementById(containerId);
                 container.innerHTML = '';
 
-                // Filter items based on the category (uoi field)
-                const filteredItems = data.filter(item => item.uoi === category);
+                // Filter items for the current category
+                const filteredItems = data.filter(item => item.uoi.trim().toLowerCase() === category.toLowerCase());
 
-                // Populate the container with filtered items
+                if (filteredItems.length === 0) {
+                    console.warn(`No items found for category: ${category}`);
+                }
+
                 filteredItems.forEach(item => {
                     const menuItem = document.createElement('div');
                     menuItem.classList.add('menu-item');
                     menuItem.setAttribute('data-category', category);
 
                     const imageUrl = `https://material-management-system-2.onrender.com${item.image_url}`;
-
                     menuItem.innerHTML = `
-                        <img src="${imageUrl}" alt="${item.item}" onerror="this.src='/path/to/default-image.jpg'; console.log('Imahe hindi umiiral')">
+                        <img src="${imageUrl}" alt="${item.item}" onerror="this.src='/path/to/default-image.jpg';">
                         <p>${item.item}</p>
                         <span>₱${item.price.toFixed(2)}</span>
                     `;
-
                     container.appendChild(menuItem);
                 });
             })
             .catch(error => console.error(`Error fetching ${category} data:`, error));
     };
 
-    // Fetch items for each category based on the uoi field from the API
+    // Fetch items for each category
     fetchAndDisplayCategoryItems('SOLO BOODLE FLIGHT', 'menu-grid-solo');
     fetchAndDisplayCategoryItems('BOODLE FLIGHTS', 'menu-grid-boodle');
     fetchAndDisplayCategoryItems('A LA CARTE', 'menu-grid-a-la-carte');
@@ -192,7 +190,8 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-//ORDERSUMMARY
+
+//ordersummary.js
 document.addEventListener('DOMContentLoaded', function () {
     const emptyCart = document.getElementById('emptyCart');
     const orderOptions = document.getElementById('orderOptions');
@@ -246,118 +245,176 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Function to delete an order item
+   // Function to delete an order item
     function deleteOrderItem(button) {
         const itemContainer = button.closest('.item-container');
         itemContainer.remove(); // Remove the selected item
 
         calculateTotalAmount(); // Recalculate the total after deletion
 
-        // Check if the cart is now empty
+    // Check if the cart is now empty
         if (orderSummary.querySelectorAll('.item-container').length === 0) {
-            // Clear order ID and date
+        // Clear order ID and date
             orderID = null;
 
-            // Remove order ID and date container
-            const orderContainer = orderSummary.querySelector('.order-container');
+        // Remove order ID and date container
+         const orderContainer = orderSummary.querySelector('.order-container');
             if (orderContainer) {
-                orderContainer.remove();
-            }
+            orderContainer.remove();
+         }
 
-            // Show the empty cart section
+        // Show the empty cart section
             emptyCart.style.display = 'block';
 
-            // Hide the order options section
+        // Hide the order options section
             orderOptions.style.display = 'none';
-        }
+
+        // Hide the total amount container
+            totalAmountContainer.style.display = 'none';
+      }
+    }
+
+
+    // Function to handle the "Edit" button click and show the modal
+    function handleEditButton(button) {
+        const itemContainer = button.closest('.item-container'); // Get the clicked item's container
+
+        // Display the modal
+        const noteModal = document.getElementById('noteModal');
+        noteModal.style.display = 'block';
+
+        // Get the existing notes for this item (if any)
+        const existingNotes = itemContainer.querySelector('.order-notes')?.textContent || '';
+        const noteInput = noteModal.querySelector('#noteInput');
+        noteInput.value = existingNotes.replace('Notes: ', ''); // Populate input with existing notes
+
+        // Add event listeners for Add and Cancel buttons
+        const addNoteButton = noteModal.querySelector('#addNoteButton');
+        const cancelNoteButton = noteModal.querySelector('#cancelNoteButton');
+
+        addNoteButton.onclick = function () {
+            const notes = noteInput.value.trim(); // Get the notes from the input
+            let notesElement = itemContainer.querySelector('.order-notes');
+
+            if (!notesElement) {
+                // If notes element doesn't exist, create it
+                notesElement = document.createElement('div');
+                notesElement.classList.add('order-notes');
+                itemContainer.appendChild(notesElement);
+            }
+
+            notesElement.textContent = `Notes: ${notes}`; // Update or add the notes
+            noteModal.style.display = 'none'; // Close the modal
+        };
+
+        cancelNoteButton.onclick = function () {
+            noteModal.style.display = 'none'; // Close the modal without saving
+        };
     }
 
     // Event delegation for menu item image clicks (for all categories)
-    document.querySelectorAll('.menu-grid').forEach(menuGrid => {
-        menuGrid.addEventListener('click', function(event) {
-            if (event.target.tagName === 'IMG') {
-                const clickedImage = event.target;
-                const menuItem = clickedImage.closest('.menu-item'); // Get the parent .menu-item element
-                const itemName = menuItem.querySelector('p').textContent;
-                const itemPrice = menuItem.querySelector('span').textContent;
+    // Event delegation for menu item image clicks (for all categories)
+document.querySelectorAll('.menu-grid').forEach(menuGrid => {
+    menuGrid.addEventListener('click', function (event) {
+        if (event.target.tagName === 'IMG') {
+            const clickedImage = event.target;
+            const menuItem = clickedImage.closest('.menu-item'); // Get the parent .menu-item element
+            const itemName = menuItem.querySelector('p').textContent;
+            const itemPrice = menuItem.querySelector('span').textContent;
 
-                // Hide the empty cart section
-                emptyCart.style.display = 'none';
+            // Check if the item already exists in the order summary
+            const existingItem = Array.from(orderSummary.querySelectorAll('.order-item-content')).find(item => {
+                return item.querySelector('p').textContent === itemName;
+            });
 
-                // Show the order options section
-                orderOptions.style.display = 'block';
+            if (existingItem) {
+                // If the item exists, increase its quantity
+                const quantityElement = existingItem.closest('.item-container').querySelector('.quantity');
+                quantityElement.textContent = parseInt(quantityElement.textContent, 10) + 1;
 
-                // Generate the order ID only if it's null (i.e., first item clicked in this session)
-                if (!orderID) {
-                    orderID = generateOrderID();
-                }
-
-                // Get the current date
-                const currentDate = getCurrentDate();
-
-                // Create a new container for the image, name, price, and buttons
-                const itemContainer = document.createElement('div');
-                itemContainer.classList.add('item-container');
-
-                // Create item details element
-                const itemElement = document.createElement('div');
-                itemElement.classList.add('order-item');
-                itemElement.innerHTML = `
-                    <img src="${clickedImage.src}" alt="${itemName}" class="order-summary-image">
-                    <div class="order-item-content">
-                        <p>${itemName}</p>
-                        <span>${itemPrice}</span>
-                    </div>
-                `;
-
-                const controlsElement = document.createElement('div');
-                controlsElement.classList.add('order-controls');
-                controlsElement.innerHTML = `
-                    <div class="left-controls">
-                        <button class="minus"><i class="fas fa-minus-circle"></i></button>
-                    </div>
-                    <div class="quantity-container">
-                        <span class="quantity">1</span>
-                    </div>
-                    <div class="right-controls">
-                        <button class="plus"><i class="fas fa-plus-circle"></i></button>
-                    </div>
-                    <div class="extra-controls">
-                        <button class="edit"><i class="fas fa-pen"></i></button>
-                        <button class="delete"><i class="fas fa-trash"></i></button>
-                    </div>
-                `;
-
-                // Append item details and controls to the item container
-                itemContainer.appendChild(itemElement);
-                itemContainer.appendChild(controlsElement);
-
-                // If this is the first item, display the order ID and date only once
-                if (orderSummary.childElementCount === 0) {
-                    // Create the container for order ID and date
-                    const orderContainer = document.createElement('div');
-                    orderContainer.classList.add('order-container');
-
-                    // Create order summary elements
-                    const orderIDElement = document.createElement('div');
-                    orderIDElement.innerHTML = `<p>Order ID</p><p>${orderID}</p>`;
-
-                    const dateElement = document.createElement('div');
-                    dateElement.innerHTML = `<p>Date</p><p>${currentDate}</p>`;
-
-                    // Append order ID and date to the container
-                    orderContainer.appendChild(orderIDElement);
-                    orderContainer.appendChild(dateElement);
-
-                    // Append the order ID and date container at the top of the summary
-                    orderSummary.appendChild(orderContainer);
-                }
-
-                // Append the item to the order summary (without removing the existing ones)
-                orderSummary.appendChild(itemContainer);
-                calculateTotalAmount(); // Calculate total after adding an item
+                calculateTotalAmount(); // Recalculate total after increasing quantity
+                return; // Exit the function, no need to add a new item
             }
-        });
+
+            // Hide the empty cart section
+            emptyCart.style.display = 'none';
+
+            // Show the order options section
+            orderOptions.style.display = 'block';
+
+            // Generate the order ID only if it's null (i.e., first item clicked in this session)
+            if (!orderID) {
+                orderID = generateOrderID();
+            }
+
+            // Get the current date
+            const currentDate = getCurrentDate();
+
+            // Create a new container for the image, name, price, and buttons
+            const itemContainer = document.createElement('div');
+            itemContainer.classList.add('item-container');
+
+            // Create item details element
+            const itemElement = document.createElement('div');
+            itemElement.classList.add('order-item');
+            itemElement.innerHTML = `
+                <img src="${clickedImage.src}" alt="${itemName}" class="order-summary-image">
+                <div class="order-item-content">
+                    <p>${itemName}</p>
+                    <span>${itemPrice}</span>
+                </div>
+            `;
+
+            const controlsElement = document.createElement('div');
+            controlsElement.classList.add('order-controls');
+            controlsElement.innerHTML = `
+                <div class="left-controls">
+                    <button class="minus"><i class="fas fa-minus-circle"></i></button>
+                </div>
+                <div class="quantity-container">
+                    <span class="quantity">1</span>
+                </div>
+                <div class="right-controls">
+                    <button class="plus"><i class="fas fa-plus-circle"></i></button>
+                </div>
+                <div class="extra-controls">
+                    <button class="edit"><i class="fas fa-pen"></i></button>
+                    <button class="delete"><i class="fas fa-trash"></i></button>
+                </div>
+            `;
+
+            // Append item details and controls to the item container
+            itemContainer.appendChild(itemElement);
+            itemContainer.appendChild(controlsElement);
+
+            // If this is the first item, display the order ID and date only once
+            if (orderSummary.childElementCount === 0) {
+                // Create the container for order ID and date
+                const orderContainer = document.createElement('div');
+                orderContainer.classList.add('order-container');
+
+                // Create order summary elements
+                const orderIDElement = document.createElement('div');
+                orderIDElement.innerHTML = `<p>Order ID</p><p>${orderID}</p>`;
+
+                const dateElement = document.createElement('div');
+                dateElement.innerHTML = `<p>Date</p><p>${currentDate}</p>`;
+
+                // Append order ID and date to the container
+                orderContainer.appendChild(orderIDElement);
+                orderContainer.appendChild(dateElement);
+
+                // Append the order ID and date container at the top of the summary
+                orderSummary.appendChild(orderContainer);
+            }
+
+            // Append the item to the order summary (without removing the existing ones)
+            orderSummary.appendChild(itemContainer);
+            calculateTotalAmount(); // Calculate total after adding an item
+        }
     });
+});
+
 
     // Event listeners for minus and plus buttons
     orderSummary.addEventListener('click', function (event) {
@@ -375,15 +432,23 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    // Event listener for edit buttons
+    orderSummary.addEventListener('click', function (event) {
+        if (event.target.closest('.edit')) {
+            handleEditButton(event.target.closest('.edit')); // Call edit handler
+        }
+    });
+
     // Attach event listener to the "Dine In" and "Take Out" buttons
-    if (btnDineIn) {
-        btnDineIn.addEventListener('click', function() {
-            totalAmountContainer.style.display = 'block';
-        });
-    }
+        if (btnDineIn) {
+            btnDineIn.addEventListener('click', function () {
+                totalAmountContainer.style.display = 'block';
+         });
+        }
+
 
     if (btnTakeOut) {
-        btnTakeOut.addEventListener('click', function() {
+        btnTakeOut.addEventListener('click', function () {
             totalAmountContainer.style.display = 'block';
         });
     }
