@@ -4,8 +4,12 @@
 
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
 
+{% block js %}
+<script src="{{ url_for('static', filename='java/dashboard.js') }}"></script>
+{% endblock %}
 
 {% block content %}
 <div class="profile-section">
@@ -23,8 +27,6 @@
             <canvas id="incomeChart"></canvas>
         </div>
         <div class="legend">
-            <span><span class="dot" style="background-color: #fcab64;"></span>Food</span>
-            <span><span class="dot" style="background-color: #fcd678;"></span>Drinks</span>
         </div>
     </div>
     <div class="total-orders">
@@ -33,15 +35,6 @@
     </div>
     <div class="trending-dishes">
         <h3>Trending Dishes</h3>
-        <select>
-            <option>Today</option>
-            <option>Yesterday</option>
-            <option>Week</option>
-            <option>Month</option>
-        </select>
-    </div>
-    <div class="list-employees">
-        <h3>List Employees</h3>
         <select>
             <option>Today</option>
             <option>Yesterday</option>
