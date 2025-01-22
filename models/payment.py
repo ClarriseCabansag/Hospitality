@@ -14,3 +14,4 @@ class Payment(db.Model):
     discount_type = db.Column(db.String(50), nullable=True)
     discount_percentage = db.Column(db.Float, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+

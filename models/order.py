@@ -1,3 +1,5 @@
+from sqlalchemy import ForeignKey
+
 from services.database import db
 
 class Orders(db.Model):
@@ -15,8 +17,7 @@ class Orders(db.Model):
 class OrderItem(db.Model):
     __tablename__ = 'orderitem'  # Explicitly define the table name
     id = db.Column(db.Integer, primary_key=True)
-    order_id = db.Column(db.String(50), db.ForeignKey('orders.order_id'), nullable=False)  # Reference 'orders'
+    order_id = db.Column(db.String(50), db.ForeignKey('orders.order_id'), nullable=False)
     item_name = db.Column(db.String(100), nullable=False)
     item_price = db.Column(db.Float, nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
-
