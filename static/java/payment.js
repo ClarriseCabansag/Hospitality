@@ -7,14 +7,61 @@ document.addEventListener('DOMContentLoaded', function () {
     const totalAmountDisplay = document.getElementById('total-amount');
     const confirmPaymentBtn = document.querySelector('.confirm-btn');
     const paymentModal = document.getElementById('paymentModal');
-    const closeModalButton = document.getElementById('closeModalButton'); // Now using correct ID
+    const closeModalButton = document.getElementById('closeModalButton');
     const applyButton = document.querySelector('.apply-btn');
     const discountButtons = document.querySelectorAll('.discount-summary .tab-btn');
+    const addButton = document.querySelector('.add-btn');
+    const cashDisplay = document.getElementById('cash-display');
+    const cashInputPaymentMethod = document.querySelector('.payment-method .payment-input input');
+    const paymentTab = document.getElementById('payment-tab'); // Ensure this tab ID matches your HTML
+    const orderTab = document.getElementById('order-tab'); // Ensure this tab ID matches your HTML
 
     let discountApplied = false;
     let discountType = '';
     const seniorDiscount = 0.20; // 20% discount
     const pwdDiscount = 0.15; // 15% discount
+
+    // Function to clear the payment fields
+    function clearPaymentFields() {
+        cashInput.value = '';
+        cashDisplay.textContent = '₱0.00';
+        cashInputPaymentMethod.value = '';
+        changeAmount.textContent = '₱0.00';
+        discountSection.style.display = 'none';
+        discountAmountElement.textContent = '0%';
+        discountType = '';
+        discountButtons.forEach(btn => {
+            btn.classList.remove('active');
+            btn.style.backgroundColor = '#f1f1f1'; // Default gray
+            btn.style.color = 'black';
+        });
+    }
+
+    // Function to hide payment-related elements
+    function hidePaymentFields() {
+        const paymentSection = document.querySelector('.payment-section'); // Assuming you have a payment section element
+        if (paymentSection) {
+            paymentSection.style.display = 'none';
+        }
+    }
+
+    // Listen for tab switching and handle display of payment fields
+    if (paymentTab) {
+        paymentTab.addEventListener('click', function () {
+            clearPaymentFields(); // Clear the payment fields when the payment tab is selected
+            const paymentSection = document.querySelector('.payment-section');
+            if (paymentSection) {
+                paymentSection.style.display = 'block'; // Show the payment section when payment tab is clicked
+            }
+        });
+    }
+
+    if (orderTab) {
+        orderTab.addEventListener('click', function () {
+            hidePaymentFields(); // Hide the payment section when switching to order tab
+            clearPaymentFields(); // Clear the fields for a fresh start when switching tabs
+        });
+    }
 
     // Ensure the DOM elements are present for cash calculation
     if (cashInput && changeAmount && totalAmountElement) {
@@ -28,6 +75,30 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // Handle Cash Add Button
+    if (addButton && cashInputPaymentMethod && cashDisplay) {
+        addButton.addEventListener('click', function () {
+            const cashAmount = parseFloat(cashInputPaymentMethod.value) || 0; // Get entered cash amount
+
+            if (cashAmount <= 0) {
+                alert('Please enter a valid cash amount.');
+                return;
+            }
+
+            // Update the displayed cash in the payment summary
+            cashDisplay.textContent = `₱${cashAmount.toFixed(2)}`;
+
+            // Update the change calculation
+            const totalAmount = parseFloat(totalAmountDisplay.textContent.replace('₱', '').replace(',', '')) || 0;
+            const change = cashAmount - totalAmount;
+
+            changeAmount.textContent = `₱${change.toFixed(2)}`;
+
+            // Clear the cash input field in the payment method
+            cashInputPaymentMethod.value = '';
+        });
+    }
+
     // Handle Payment Modal
     if (confirmPaymentBtn && paymentModal && closeModalButton) {
         function showModal() {
@@ -38,58 +109,57 @@ document.addEventListener('DOMContentLoaded', function () {
             paymentModal.style.display = 'none';
         }
 
-confirmPaymentBtn.addEventListener('click', function () {
-    // Collect payment data
-    const orderId = document.querySelector('.order-id-value').textContent.trim();
-    const subtotal = parseFloat(document.querySelector('.subtotal p:nth-child(2)').textContent.replace('₱', '').replace(',', '')) || 0;
-    const tax = parseFloat((subtotal * 0.05).toFixed(2));
-    const total = parseFloat(totalAmountDisplay.textContent.replace('₱', '').replace(',', '')) || 0;
-    const cashReceived = parseFloat(cashInput.value) || 0;
-    const change = parseFloat(changeAmount.textContent.replace('₱', '').replace(',', '')) || 0;
-    const discountType = document.getElementById('discount-type').textContent.trim() || null;
-    const discountPercentage = parseFloat(discountAmountElement.textContent.replace('%', '')) / 100 || 0;
+        confirmPaymentBtn.addEventListener('click', function () {
+            // Collect payment data
+            const orderId = document.querySelector('.order-id-value').textContent.trim();
+            const subtotal = parseFloat(document.querySelector('.subtotal p:nth-child(2)').textContent.replace('₱', '').replace(',', '')) || 0;
+            const tax = parseFloat((subtotal * 0.05).toFixed(2));
+            const total = parseFloat(totalAmountDisplay.textContent.replace('₱', '').replace(',', '')) || 0;
+            const cashReceived = parseFloat(cashDisplay.textContent.replace('₱', '').replace(',', '')) || 0; // Use cash from cashDisplay
+            const change = parseFloat(changeAmount.textContent.replace('₱', '').replace(',', '')) || 0;
+            const discountType = document.getElementById('discount-type').textContent.trim() || null;
+            const discountPercentage = parseFloat(discountAmountElement.textContent.replace('%', '')) / 100 || 0;
 
-    // Check if cash is entered
-    if (isNaN(cashReceived) || cashReceived <= 0) {
-        alert('Please enter a valid cash amount.');
-        return; // Exit the function if cash is invalid
-    }
-
-    // Prepare data payload
-    const paymentData = {
-        order_id: orderId,
-        subtotal: subtotal,
-        tax: tax,
-        total: total,
-        cash_received: cashReceived,
-        change: change,
-        discount_type: discountType,
-        discount_percentage: discountPercentage
-    };
-
-    // Send data to the backend using fetch
-    fetch('/save_payment', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(paymentData)
-    })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Payment saved successfully!');
-                showModal();
-            } else {
-                alert('Failed to save payment. Please try again.');
+            // Check if cash is entered
+            if (isNaN(cashReceived) || cashReceived <= 0) {
+                alert('Please enter a valid cash amount.');
+                return; // Exit the function if cash is invalid
             }
-        })
-        .catch(error => {
-            console.error('Error saving payment:', error);
-            alert('An error occurred. Please try again.');
-        });
-});
 
+            // Prepare data payload
+            const paymentData = {
+                order_id: orderId,
+                subtotal: subtotal,
+                tax: tax,
+                total: total,
+                cash_received: cashReceived,
+                change: change,
+                discount_type: discountType,
+                discount_percentage: discountPercentage
+            };
+
+            // Send data to the backend using fetch
+            fetch('/save_payment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(paymentData)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Payment saved successfully!');
+                        showModal();
+                    } else {
+                        alert('Failed to save payment. Please try again.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error saving payment:', error);
+                    alert('An error occurred. Please try again.');
+                });
+        });
 
         closeModalButton.addEventListener('click', function () {
             hideModal();
