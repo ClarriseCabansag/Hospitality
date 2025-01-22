@@ -7,6 +7,7 @@ from models.Manager import Manager
 from models.order import Orders,OrderItem
 from models.Till import OpenTill
 from models.payment import Payment
+from models.seat import TableReservations
 from models.user import User
 from services.auth import authenticate_user, migrate_passwords
 from services.token_service import create_token, decode_token
@@ -496,6 +497,54 @@ def get_cashier_name():
 @app.route('/seats')
 def seats():
     return render_template('seats.html')
+
+@app.route('/save_table_reservation', methods=['POST'])
+def save_table_reservation():
+    if not request.is_json:
+        return jsonify({'success': False, 'error': "Unsupported Media Type: Content-Type must be 'application/json'"}), 415
+
+    try:
+        data = request.get_json()
+        table_id = data.get('table_id')
+        guest_count = data.get('guest_count')
+
+        if not table_id or not guest_count:
+            return jsonify({'success': False, 'error': 'Missing table ID or guest count'}), 400
+
+        # Save reservation to the database
+        new_reservation = TableReservations(table_id=table_id, guest_count=guest_count, status='Occupied')
+        db.session.add(new_reservation)
+        db.session.commit()
+
+        return jsonify({'success': True, 'message': 'Reservation saved successfully'}), 200
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/mark_table_available', methods=['POST'])
+def mark_table_available():
+    if not request.is_json:
+        return jsonify({'success': False, 'error': "Unsupported Media Type: Content-Type must be 'application/json'"}), 415
+
+    try:
+        data = request.get_json()
+        table_id = data.get('table_id')
+
+        if not table_id:
+            return jsonify({'success': False, 'error': 'Missing table ID'}), 400
+
+        # Find the reservation and delete it (or update its status)
+        reservation = TableReservations.query.filter_by(table_id=table_id).first()
+        if not reservation:
+            return jsonify({'success': False, 'error': f'Table {table_id} not found'}), 404
+
+        db.session.delete(reservation)
+        db.session.commit()
+
+        return jsonify({'success': True, 'message': f'Table {table_id} is now available'}), 200
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 @app.route('/payment', methods=['GET'])
