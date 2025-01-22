@@ -50,15 +50,15 @@
             </div>
 
             <div class="payment-summary">
-                <div class="payment-row">
-                    <p class="label">Cash:</p>
-                    <input id="cash-input" type="number" placeholder="Enter cash amount">
-                </div>
-                <div class="payment-row">
-                    <p class="label">Change:</p>
-                    <p id="change-amount">₱0.00</p>
-                </div>
-            </div>
+    <div class="payment-row">
+        <p class="label">Cash:</p>
+        <p id="cash-display">₱0.00</p> <!-- Placeholder for displaying cash -->
+    </div>
+    <div class="payment-row">
+        <p class="label">Change:</p>
+        <p id="change-amount">₱0.00</p>
+    </div>
+</div>
 
             <button class="confirm-btn">
                 <i class="fas fa-wallet"></i> Confirm Payment
@@ -94,7 +94,7 @@
                     <button class="tab-btn">Other Modes</button>
                 </div>
                 <div class="payment-input">
-                    <input type="text" placeholder="Enter amount" value="₱{{ default_amount or '480.00' }}">
+                  <input type="text" id="cash-input" placeholder="Enter Cash" />
                 </div>
                 <div class="payment-actions">
                     <button class="cancel-btn">Cancel</button>
