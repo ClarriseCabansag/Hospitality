@@ -507,19 +507,61 @@ def save_table_reservation():
         data = request.get_json()
         table_id = data.get('table_id')
         guest_count = data.get('guest_count')
+        order_details = data.get('order_details', {})  # Order data (dictionary)
 
         if not table_id or not guest_count:
             return jsonify({'success': False, 'error': 'Missing table ID or guest count'}), 400
 
-        # Save reservation to the database
-        new_reservation = TableReservations(table_id=table_id, guest_count=guest_count, status='Occupied')
+        # Centralized order_id handling
+        order_id = order_details.get('orderID') or f"ORD-{datetime.utcnow().strftime('%Y%m%d%H%M%S%f')}"  # Generate unique order_id
+        order_date = order_details.get('date') or datetime.utcnow().isoformat()
+        items = order_details.get('items', [])
+        order_type = order_details.get('orderType') or 'Dine-In'
+        total_amount = order_details.get('totalAmount') or 0.0
+
+        # Validate order details
+        if not items or not total_amount:
+            return jsonify({'success': False, 'error': 'Incomplete order details'}), 400
+
+        # Check if the order_id already exists (optional safety check)
+        existing_order = Orders.query.filter_by(order_id=order_id).first()
+        if existing_order:
+            return jsonify({'success': False, 'error': f'Order with ID {order_id} already exists'}), 400
+
+        # Save order to the database
+        new_order = Orders(
+            order_id=order_id,
+            date=order_date,
+            order_type=order_type,
+            total_amount=total_amount
+        )
+        db.session.add(new_order)
+
+        # Save each item
+        for item in items:
+            order_item = OrderItem(
+                order_id=order_id,
+                item_name=item['name'],
+                item_price=item['price'],
+                quantity=item['quantity']
+            )
+            db.session.add(order_item)
+
+        # Save reservation with order_id
+        new_reservation = TableReservations(
+            table_id=table_id,
+            guest_count=guest_count,
+            status='Occupied',
+            order_id=order_id  # Use the same order_id for the reservation
+        )
         db.session.add(new_reservation)
         db.session.commit()
 
-        return jsonify({'success': True, 'message': 'Reservation saved successfully'}), 200
+        return jsonify({'success': True, 'message': 'Reservation and order saved successfully', 'order_id': order_id}), 200
 
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
 
 @app.route('/mark_table_available', methods=['POST'])
 def mark_table_available():
