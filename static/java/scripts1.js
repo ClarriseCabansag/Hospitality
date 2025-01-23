@@ -116,27 +116,29 @@ document.addEventListener('DOMContentLoaded', function () {
         section.style.display = 'block';
     });
 
-    const fetchAndDisplayCategoryItems = (category, containerId) => {
+    const fetchAndDisplayCategoryItems = (categoryKeywords, containerId) => {
         fetch('/api/inventory_data')
             .then(response => response.json())
             .then(data => {
-                console.log(`Fetched Data for ${category}:`, data);
+                console.log(`Fetched Data for categories: ${categoryKeywords}`, data);
 
                 // Clear the container
                 const container = document.getElementById(containerId);
                 container.innerHTML = '';
 
-                // Filter items for the current category
-                const filteredItems = data.filter(item => item.uoi.trim().toLowerCase() === category.toLowerCase());
+                // Filter items matching any of the category keywords
+                const filteredItems = data.filter(item =>
+                    categoryKeywords.some(keyword => item.uoi.trim().toLowerCase() === keyword.toLowerCase())
+                );
 
                 if (filteredItems.length === 0) {
-                    console.warn(`No items found for category: ${category}`);
+                    console.warn(`No items found for categories: ${categoryKeywords}`);
                 }
 
                 filteredItems.forEach(item => {
                     const menuItem = document.createElement('div');
                     menuItem.classList.add('menu-item');
-                    menuItem.setAttribute('data-category', category);
+                    menuItem.setAttribute('data-category', categoryKeywords.join(', '));
 
                     const imageUrl = `https://material-management-system-2.onrender.com${item.image_url}`;
                     menuItem.innerHTML = `
@@ -147,16 +149,17 @@ document.addEventListener('DOMContentLoaded', function () {
                     container.appendChild(menuItem);
                 });
             })
-            .catch(error => console.error(`Error fetching ${category} data:`, error));
+            .catch(error => console.error(`Error fetching data for categories: ${categoryKeywords}`, error));
     };
 
     // Fetch items for each category
-    fetchAndDisplayCategoryItems('SOLO BOODLE FLIGHT', 'menu-grid-solo');
-    fetchAndDisplayCategoryItems('BOODLE FLIGHTS', 'menu-grid-boodle');
-    fetchAndDisplayCategoryItems('A LA CARTE', 'menu-grid-a-la-carte');
-    fetchAndDisplayCategoryItems('SINGLE FLIGHTS', 'menu-grid-single-flights');
-    fetchAndDisplayCategoryItems('INTERNATIONAL FLIGHTS', 'menu-grid-international-flights');
-    fetchAndDisplayCategoryItems('UNCLE D\'S ICE CREAM SANDWICH', 'menu-grid-uncle');
+    fetchAndDisplayCategoryItems(['SOLO BOODLE FLIGHT'], 'menu-grid-solo');
+    fetchAndDisplayCategoryItems(['BOODLE FLIGHTS'], 'menu-grid-boodle');
+    fetchAndDisplayCategoryItems(['A LA CARTE'], 'menu-grid-a-la-carte');
+    fetchAndDisplayCategoryItems(['SINGLE FLIGHTS'], 'menu-grid-single-flights');
+    fetchAndDisplayCategoryItems(['INTERNATIONAL FLIGHTS'], 'menu-grid-international-flights');
+    fetchAndDisplayCategoryItems(['UNCLE D\'S ICE CREAM SANDWICH'], 'menu-grid-uncle');
+    fetchAndDisplayCategoryItems(['DRINKS', 'BEERS', 'SHAKES'], 'menu-grid-drinks'); // Combine Drinks, Beers, and Shakes
 
     // Add category filtering functionality
     categories.forEach(category => {
@@ -245,35 +248,27 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Function to delete an order item
-   // Function to delete an order item
     function deleteOrderItem(button) {
         const itemContainer = button.closest('.item-container');
         itemContainer.remove(); // Remove the selected item
 
         calculateTotalAmount(); // Recalculate the total after deletion
 
-    // Check if the cart is now empty
+        // Check if the cart is now empty
         if (orderSummary.querySelectorAll('.item-container').length === 0) {
-        // Clear order ID and date
             orderID = null;
 
-        // Remove order ID and date container
-         const orderContainer = orderSummary.querySelector('.order-container');
+            // Remove order ID and date container
+            const orderContainer = orderSummary.querySelector('.order-container');
             if (orderContainer) {
-            orderContainer.remove();
-         }
+                orderContainer.remove();
+            }
 
-        // Show the empty cart section
             emptyCart.style.display = 'block';
-
-        // Hide the order options section
             orderOptions.style.display = 'none';
-
-        // Hide the total amount container
             totalAmountContainer.style.display = 'none';
-      }
+        }
     }
-
 
     // Function to handle the "Edit" button click and show the modal
     function handleEditButton(button) {
@@ -293,19 +288,20 @@ document.addEventListener('DOMContentLoaded', function () {
         const cancelNoteButton = noteModal.querySelector('#cancelNoteButton');
 
         addNoteButton.onclick = function () {
-            const notes = noteInput.value.trim(); // Get the notes from the input
-            let notesElement = itemContainer.querySelector('.order-notes');
+    const notes = noteInput.value.trim(); // Get the notes from the input
+    let notesElement = itemContainer.querySelector('.order-notes');
 
-            if (!notesElement) {
-                // If notes element doesn't exist, create it
-                notesElement = document.createElement('div');
-                notesElement.classList.add('order-notes');
-                itemContainer.appendChild(notesElement);
-            }
+    if (!notesElement) {
+        // If notes element doesn't exist, create it
+        notesElement = document.createElement('div');
+        notesElement.classList.add('order-notes');
+        const priceElement = itemContainer.querySelector('.order-item-content span');
+        priceElement.insertAdjacentElement('afterend', notesElement); // Insert notes directly below price
+    }
 
-            notesElement.textContent = `Notes: ${notes}`; // Update or add the notes
-            noteModal.style.display = 'none'; // Close the modal
-        };
+    notesElement.textContent = `Notes: ${notes}`; // Update or add the notes
+    noteModal.style.display = 'none'; // Close the modal
+};
 
         cancelNoteButton.onclick = function () {
             noteModal.style.display = 'none'; // Close the modal without saving
@@ -313,108 +309,106 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Event delegation for menu item image clicks (for all categories)
-    // Event delegation for menu item image clicks (for all categories)
-document.querySelectorAll('.menu-grid').forEach(menuGrid => {
-    menuGrid.addEventListener('click', function (event) {
-        if (event.target.tagName === 'IMG') {
-            const clickedImage = event.target;
-            const menuItem = clickedImage.closest('.menu-item'); // Get the parent .menu-item element
-            const itemName = menuItem.querySelector('p').textContent;
-            const itemPrice = menuItem.querySelector('span').textContent;
+    document.querySelectorAll('.menu-grid').forEach(menuGrid => {
+        menuGrid.addEventListener('click', function (event) {
+            if (event.target.tagName === 'IMG') {
+                const clickedImage = event.target;
+                const menuItem = clickedImage.closest('.menu-item'); // Get the parent .menu-item element
+                const itemName = menuItem.querySelector('p').textContent;
+                const itemPrice = menuItem.querySelector('span').textContent;
 
-            // Check if the item already exists in the order summary
-            const existingItem = Array.from(orderSummary.querySelectorAll('.order-item-content')).find(item => {
-                return item.querySelector('p').textContent === itemName;
-            });
+                // Check if the item already exists in the order summary
+                const existingItem = Array.from(orderSummary.querySelectorAll('.order-item-content')).find(item => {
+                    return item.querySelector('p').textContent === itemName;
+                });
 
-            if (existingItem) {
-                // If the item exists, increase its quantity
-                const quantityElement = existingItem.closest('.item-container').querySelector('.quantity');
-                quantityElement.textContent = parseInt(quantityElement.textContent, 10) + 1;
+                if (existingItem) {
+                    // If the item exists, increase its quantity
+                    const quantityElement = existingItem.closest('.item-container').querySelector('.quantity');
+                    quantityElement.textContent = parseInt(quantityElement.textContent, 10) + 1;
 
-                calculateTotalAmount(); // Recalculate total after increasing quantity
-                return; // Exit the function, no need to add a new item
+                    calculateTotalAmount(); // Recalculate total after increasing quantity
+                    return; // Exit the function, no need to add a new item
+                }
+
+                // Hide the empty cart section
+                emptyCart.style.display = 'none';
+
+                // Show the order options section
+                orderOptions.style.display = 'block';
+
+                // Generate the order ID only if it's null (i.e., first item clicked in this session)
+                if (!orderID) {
+                    orderID = generateOrderID();
+                }
+
+                // Get the current date
+                const currentDate = getCurrentDate();
+
+                // Create a new container for the image, name, price, and buttons
+                const itemContainer = document.createElement('div');
+                itemContainer.classList.add('item-container');
+
+                // Create item details element
+                const itemElement = document.createElement('div');
+                itemElement.classList.add('order-item');
+                itemElement.innerHTML = `
+                    <img src="${clickedImage.src}" alt="${itemName}" class="order-summary-image">
+                    <div class="order-item-content">
+                        <p>${itemName}</p>
+                        <span>${itemPrice}</span>
+                    </div>
+                `;
+
+                const controlsElement = document.createElement('div');
+                controlsElement.classList.add('order-controls');
+                controlsElement.innerHTML = `
+                    <div class="left-controls">
+                        <button class="minus"><i class="fas fa-minus-circle"></i></button>
+                    </div>
+                    <div class="quantity-container">
+                        <span class="quantity">1</span>
+                    </div>
+                    <div class="right-controls">
+                        <button class="plus"><i class="fas fa-plus-circle"></i></button>
+                    </div>
+                    <div class="extra-controls">
+                        <button class="edit"><i class="fas fa-pen"></i></button>
+                        <button class="delete"><i class="fas fa-trash"></i></button>
+                    </div>
+                `;
+
+                // Append item details and controls to the item container
+                itemContainer.appendChild(itemElement);
+                itemContainer.appendChild(controlsElement);
+
+                // If this is the first item, display the order ID and date only once
+                if (orderSummary.childElementCount === 0) {
+                    // Create the container for order ID and date
+                    const orderContainer = document.createElement('div');
+                    orderContainer.classList.add('order-container');
+
+                    // Create order summary elements
+                    const orderIDElement = document.createElement('div');
+                    orderIDElement.innerHTML = `<p>Order ID</p><p>${orderID}</p>`;
+
+                    const dateElement = document.createElement('div');
+                    dateElement.innerHTML = `<p>Date</p><p>${currentDate}</p>`;
+
+                    // Append order ID and date to the container
+                    orderContainer.appendChild(orderIDElement);
+                    orderContainer.appendChild(dateElement);
+
+                    // Append the order ID and date container at the top of the summary
+                    orderSummary.appendChild(orderContainer);
+                }
+
+                // Append the item to the order summary (without removing the existing ones)
+                orderSummary.appendChild(itemContainer);
+                calculateTotalAmount(); // Calculate total after adding an item
             }
-
-            // Hide the empty cart section
-            emptyCart.style.display = 'none';
-
-            // Show the order options section
-            orderOptions.style.display = 'block';
-
-            // Generate the order ID only if it's null (i.e., first item clicked in this session)
-            if (!orderID) {
-                orderID = generateOrderID();
-            }
-
-            // Get the current date
-            const currentDate = getCurrentDate();
-
-            // Create a new container for the image, name, price, and buttons
-            const itemContainer = document.createElement('div');
-            itemContainer.classList.add('item-container');
-
-            // Create item details element
-            const itemElement = document.createElement('div');
-            itemElement.classList.add('order-item');
-            itemElement.innerHTML = `
-                <img src="${clickedImage.src}" alt="${itemName}" class="order-summary-image">
-                <div class="order-item-content">
-                    <p>${itemName}</p>
-                    <span>${itemPrice}</span>
-                </div>
-            `;
-
-            const controlsElement = document.createElement('div');
-            controlsElement.classList.add('order-controls');
-            controlsElement.innerHTML = `
-                <div class="left-controls">
-                    <button class="minus"><i class="fas fa-minus-circle"></i></button>
-                </div>
-                <div class="quantity-container">
-                    <span class="quantity">1</span>
-                </div>
-                <div class="right-controls">
-                    <button class="plus"><i class="fas fa-plus-circle"></i></button>
-                </div>
-                <div class="extra-controls">
-                    <button class="edit"><i class="fas fa-pen"></i></button>
-                    <button class="delete"><i class="fas fa-trash"></i></button>
-                </div>
-            `;
-
-            // Append item details and controls to the item container
-            itemContainer.appendChild(itemElement);
-            itemContainer.appendChild(controlsElement);
-
-            // If this is the first item, display the order ID and date only once
-            if (orderSummary.childElementCount === 0) {
-                // Create the container for order ID and date
-                const orderContainer = document.createElement('div');
-                orderContainer.classList.add('order-container');
-
-                // Create order summary elements
-                const orderIDElement = document.createElement('div');
-                orderIDElement.innerHTML = `<p>Order ID</p><p>${orderID}</p>`;
-
-                const dateElement = document.createElement('div');
-                dateElement.innerHTML = `<p>Date</p><p>${currentDate}</p>`;
-
-                // Append order ID and date to the container
-                orderContainer.appendChild(orderIDElement);
-                orderContainer.appendChild(dateElement);
-
-                // Append the order ID and date container at the top of the summary
-                orderSummary.appendChild(orderContainer);
-            }
-
-            // Append the item to the order summary (without removing the existing ones)
-            orderSummary.appendChild(itemContainer);
-            calculateTotalAmount(); // Calculate total after adding an item
-        }
+        });
     });
-});
-
 
     // Event listeners for minus and plus buttons
     orderSummary.addEventListener('click', function (event) {
@@ -440,12 +434,11 @@ document.querySelectorAll('.menu-grid').forEach(menuGrid => {
     });
 
     // Attach event listener to the "Dine In" and "Take Out" buttons
-        if (btnDineIn) {
-            btnDineIn.addEventListener('click', function () {
-                totalAmountContainer.style.display = 'block';
-         });
-        }
-
+    if (btnDineIn) {
+        btnDineIn.addEventListener('click', function () {
+            totalAmountContainer.style.display = 'block';
+        });
+    }
 
     if (btnTakeOut) {
         btnTakeOut.addEventListener('click', function () {
