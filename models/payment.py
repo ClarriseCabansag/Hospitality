@@ -13,5 +13,5 @@ class Payment(db.Model):
     change = db.Column(db.Float, nullable=False)
     discount_type = db.Column(db.String(50), nullable=True)
     discount_percentage = db.Column(db.Float, nullable=True)
+    status = db.Column(db.String(20), default="Pending", nullable=False)  # New column for status
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
