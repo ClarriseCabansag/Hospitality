@@ -208,34 +208,50 @@ function handlePaymentCompletion() {
         });
     });
 
-    saveButton.addEventListener('click', function () {
-        const guestCount = parseInt(guestCountInput.value, 10);
+saveButton.addEventListener('click', function () {
+    const guestCount = parseInt(guestCountInput.value, 10);
 
-        if (!guestCount || guestCount < 1) {
-            alert("Please enter a valid guest count.");
-            return;
-        }
+    if (!guestCount || guestCount < 1) {
+        alert("Please enter a valid guest count.");
+        return;
+    }
 
-        if (selectedTable) {
-            const tableId = selectedTable.getAttribute('data-label');
-            fetch('/save_table_reservation', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ table_id: tableId, guest_count: guestCount })
+    if (selectedTable) {
+        const tableId = selectedTable.getAttribute('data-label');
+
+        // Generate or reuse a consistent orderID
+        const orderId = `ORD-${Date.now()}`; // Generate orderID (frontend example)
+        const orderDetails = {
+            orderID: orderId, // Pass this orderID to the backend
+            date: new Date().toISOString(),
+            orderType: 'Dine-In',
+            totalAmount: 150.0, // Example amount
+            items: [
+                { name: 'Burger', price: 50.0, quantity: 2 },
+                { name: 'Fries', price: 25.0, quantity: 2 }
+            ]
+        };
+
+        fetch('/save_table_reservation', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ table_id: tableId, guest_count: guestCount, order_details: orderDetails })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    selectedTable.classList.add('occupied');
+                    popupContainer.style.display = 'none';
+                    saveTableStatusToLocalStorage();
+                    console.log(`Reservation saved with Order ID: ${data.order_id}`);
+                } else {
+                    alert(data.error);
+                }
             })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        selectedTable.classList.add('occupied');
-                        popupContainer.style.display = 'none';
-                        saveTableStatusToLocalStorage(); // Ensure we save status after reservation
-                    } else {
-                        alert(data.error);
-                    }
-                })
-                .catch(error => console.error('Error:', error));
-        }
-    });
+            .catch(error => console.error('Error:', error));
+    }
+});
+
 
     cancelButton.addEventListener('click', function () {
         popupContainer.style.display = 'none';
