@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 import requests
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 from models.Cashier import Cashier
@@ -12,7 +12,7 @@ from models.user import User
 from services.auth import authenticate_user, migrate_passwords
 from services.token_service import create_token, decode_token
 from services.database import db
-from sqlalchemy import inspect
+from sqlalchemy import inspect, func
 from flask_migrate import Migrate
 from flask import jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -592,7 +592,9 @@ def mark_table_available():
 @app.route('/payment', methods=['GET'])
 def payment():
     payment_data = session.get('payment_data', {})
-    return render_template('payment.html', **payment_data)
+    payment_status = payment_data.get('status', 'Pending')
+    return render_template('payment.html', **payment_data, status=payment_status)
+
 
 @app.route('/save_payment', methods=['POST'])
 def save_payment():
@@ -608,7 +610,7 @@ def save_payment():
     discount_type = payment_data.get('discount_type', None)
     discount_percentage = payment_data.get('discount_percentage', 0)
 
-    # Example: Saving to the database (update this based on your model)
+    # Save payment to the database
     new_payment = Payment(
         order_id=order_id,
         subtotal=subtotal,
@@ -617,7 +619,8 @@ def save_payment():
         cash_received=cash_received,
         change=change,
         discount_type=discount_type,
-        discount_percentage=discount_percentage
+        discount_percentage=discount_percentage,
+        status="Complete"  # Set status to Complete
     )
     db.session.add(new_payment)
     db.session.commit()
@@ -627,11 +630,111 @@ def save_payment():
 
 @app.route('/order_history')
 def order_history():
-    return render_template('order_history.html')
+    # Fetch only completed orders
+    completed_orders = db.session.query(Orders, Payment).outerjoin(Payment, Orders.order_id == Payment.order_id).filter(
+        Payment.status == 'Complete').all()
+
+    order_data = []
+    for order, payment in completed_orders:
+        order_items = db.session.query(OrderItem).filter(OrderItem.order_id == order.order_id).all()
+        order_details = ', '.join([f"{item.item_name} (x{item.quantity})" for item in order_items])
+
+        order_data.append({
+            'order_id': order.order_id,
+            'order_details': order_details,
+            'date': order.date,
+            'time': payment.created_at.strftime("%I:%M %p") if payment else 'N/A',
+            'order_type': order.order_type,
+            'order_status': payment.status if payment else 'Pending',  # This will always be 'Complete' now
+            'amount': f"₱{payment.subtotal:,.2f}" if payment else "₱0.00"
+        })
+
+    return render_template('order_history.html', orders=order_data)
 
 @app.route('/managers')
 def manager_dashboard():
     return render_template('managers.html')
+
+
+@app.route('/api/daily-sales')
+def get_daily_sales():
+    # Get sales for the last 7 days
+    last_week = datetime.utcnow() - timedelta(days=7)
+
+    sales_data = (
+        db.session.query(
+            func.date(Payment.created_at).label('date'),
+            func.sum(Payment.total).label('total_sales')
+        )
+        .filter(Payment.created_at >= last_week)
+        .group_by(func.date(Payment.created_at))
+        .order_by(func.date(Payment.created_at))
+        .all()
+    )
+
+    # Format data for Chart.js
+    sales_chart_data = {"labels": [], "data": []}
+    for row in sales_data:
+        sales_chart_data["labels"].append(row.date.strftime('%Y-%m-%d'))
+        sales_chart_data["data"].append(row.total_sales)
+
+    return jsonify(sales_chart_data)
+
+@app.route('/api/total-orders', methods=['GET'])
+def get_total_orders():
+    total_orders = Orders.query.count()  # Get the total number of orders
+    return jsonify({'totalOrders': total_orders})
+
+
+@app.route('/api/trending-dishes')
+def get_trending_dishes():
+    # Query to get the top 20 dishes based on total quantity sold
+    trending_dishes = db.session.query(
+        OrderItem.item_name,
+        func.sum(OrderItem.quantity).label('total_quantity')
+    ).group_by(OrderItem.item_name) \
+        .order_by(func.sum(OrderItem.quantity).desc()) \
+        .limit(20) \
+        .all()
+
+    # Prepare the result to send as JSON
+    result = [{'item_name': dish.item_name, 'total_quantity': dish.total_quantity} for dish in trending_dishes]
+    return jsonify({'trendingDishes': result})
+
+@app.route('/api/total-income', methods=['GET'])
+def get_total_income():
+    try:
+        # Get the time period from the query parameters
+        time_period = request.args.get('timePeriod', 'today')
+        now = datetime.utcnow()
+
+        if time_period == 'today':
+            start_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        elif time_period == 'yesterday':
+            start_date = (now - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+            now = start_date + timedelta(days=1)
+        elif time_period == 'week':
+            start_date = now - timedelta(days=now.weekday())  # Start of the current week
+        elif time_period == 'month':
+            start_date = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)  # Start of the current month
+        elif time_period == 'year':
+            start_date = now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)  # Start of the year
+        else:
+            return jsonify({"error": "Invalid time period"}), 400
+
+        # Query the total income
+        total_income = db.session.query(func.sum(Payment.total)).filter(
+            Payment.created_at >= start_date,
+            Payment.created_at <= now
+        ).scalar() or 0.0
+
+        return jsonify({
+            "timePeriod": time_period,
+            "totalIncome": round(total_income, 2)  # Rounded to 2 decimal places
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/dashboard1')
 def dashboard1():
