@@ -1,58 +1,295 @@
-h2 {
-    margin-bottom: 20px;
-    margin-top: 20px;
-    font-weight: 600;
-    font-size: 50px;
-    font-family:'Poppins', sans-serif;
-    color:#d32f2f;
+    /* General Styling */
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: #f6f0e8;
 
-}
+        color: #333;
+    }
+
+    h2 {
+        font-size: 50px;
+        font-weight: 600;
+        color: #d32f2f;
+        margin: 20px 0;
+    }
+
+    h3 {
+        font-size: 24px;
+        font-weight: 500;
+        margin-bottom: 10px;
+    }
+
+    /* Header with Date Buttons */
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .date-buttons {
+        display: flex;
+        gap: 10px;
+    }
+
+    .date-buttons button {
+        padding: 8px 15px;
+        background-color: #fff;
+        border: 2px solid #d32f2f;
+        border-radius: 5px;
+        color: #d32f2f;
+        font-family: 'Poppins', sans-serif;
+        cursor: pointer;
+    }
+
+    .date-buttons .active {
+        background-color: #d32f2f;
+        color: #fff;
+    }
 
 .dashboard-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: auto auto;
+    grid-template-columns: 2fr 1fr; /* Two columns: wide for charts, narrow for smaller cards */
+    grid-template-rows: auto auto; /* Two rows instead of three */
     gap: 20px;
-    margin-top: 20px;
+    margin-top: 10px;
 }
-
-.daily-sales, .total-income, .total-orders, .trending-dishes, .list-employees {
-    background-color: #f6f0e8;
-    padding: 10px;
+    /* Daily Sales Section */
+/* Daily Sales Section */
+.daily-sales {
+    background-color: white;
+    padding: 20px;
     border-radius: 10px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    font-family:'Poppins', sans-serif;
-    font-size: 20px;
+    grid-column: 1 / 2; /* First column */
+    grid-row: 1 / 2;    /* First row */
+    height: 450px; /* Reduced height */
+
 }
 
-.daily-sales {
-    grid-column: span 2;
-    position: relative;
+
+/* Trending Dishes Section - Move this below Daily Sales */
+.trending-dishes-container {
+    background-color: #f9f9f9; /* Light gray background */
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    grid-column: 1 / 2; /* First column */
+    grid-row: 2 / 3;    /* Second row */
+    height:300px;
 }
 
+/* Total Income Section */
 .total-income {
-    grid-column: span 2;
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    grid-column: 2 / 3; /* Second column */
+    grid-row: 1 / 2;
+    height: 100px; /* Adjust the height to be smaller */
+    overflow: hidden; /* Optional: To ensure content doesn't overflow */
 }
 
+
+/* Total Orders Section */
 .total-orders {
-    grid-column: span 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    grid-column: 2 / 3; /* Second column */
+    grid-row: 2 / 3;    /* Second row */
 }
 
+  /* Trending Dishes Section */
 .trending-dishes {
-    grid-column: span
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    grid-column: 1 / 2; /* First column */
+    grid-row: 2 / 3;    /* Second row, directly below Daily Sales */
+    height: auto; /* Let height adjust based on content */
 }
 
-option {
-    font-weight: normal;
-    display: block;
-    padding-block-end: 1px;
-    min-block-size: 1.2em;
-    padding-inline: 2px;
-    white-space: nowrap;
-    font-size: 15px;
-    font-family:'Poppins', sans-serif;
-}
+    .view-report {
+        background-color: #d32f2f;
+        color: #fff;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 5px;
+        margin-top: 15px;
+        cursor: pointer;
+    }
+
+    /* Total Income */
+    .total-income {
+        text-align: center;
+    }
+
+    .total-income .legend {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-top: 10px;
+    }
+
+    .legend .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 5px;
+    }
+
+    /* Total Orders */
+    .total-orders {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+    }
+
+    .total-orders .order-number {
+        font-size: 36px;
+        font-weight: bold;
+        margin-top: 10px;
+    }
+
+    /* Trending Dishes */
+    .trending-dishes select {
+        width: 100%;
+        padding: 8px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        font-size: 16px;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .dashboard-grid {
+            grid-template-columns: 1fr; /* Stack all elements vertically */
+            grid-template-rows: auto;
+        }
+
+        .daily-sales, .total-income, .total-orders, .trending-dishes {
+            grid-column: 1 / 2; /* Single column */
+            grid-row: auto;    /* Let the rows adjust naturally */
+        }
+    }
+
+    @media (max-width: 480px) {
+        h2 {
+            font-size: 36px; /* Smaller header text for small screens */
+        }
+
+        h3 {
+            font-size: 20px; /* Smaller card titles */
+        }
+
+        .date-buttons button {
+            font-size: 12px; /* Smaller buttons */
+            padding: 5px 10px;
+        }
+
+        .total-orders .order-number {
+            font-size: 28px; /* Adjust font size for small screens */
+        }
+    }
+
+    /* Modal styles */
+    .modal {
+        display: none; /* Hidden by default */
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.4); /* Black background with opacity */
+    }
+
+    .modal-content {
+        background-color: #fff;
+        margin: 10% auto;
+        padding: 20px;
+        border-radius: 10px;
+        width: 80%; /* Adjust the width as necessary */
+        max-width: 600px; /* Limit the width */
+    }
+
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .close:hover,
+    .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    /* Table styling */
+    #salesReportTable {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+    #salesReportTable th,
+    #salesReportTable td {
+        padding: 10px;
+        border: 1px solid #ddd;
+        text-align: left;
+    }
+
+    #salesReportTable th {
+        background-color: #f2f2f2;
+    }
+
+    #salesReportTable td {
+        font-size: 16px;
+    }
+
+    .trending-dishes-container {
+        background-color: #f9f9f9; /* Light gray background */
+        border: 1px solid #ddd; /* Border around the section */
+        border-radius: 8px; /* Rounded corners */
+        padding: 20px; /* Spacing inside the container */
+        margin: 20px 0; /* Spacing around the container */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow effect */
+    }
+
+    .header-row {
+        display: flex;
+        justify-content: space-between; /* Align title and dropdown */
+        align-items: center; /* Vertically center align */
+        margin-bottom: 20px; /* Space between the header and chart */
+    }
+
+    .header-row h2 {
+        margin: 0;
+        font-size: 1.5em;
+        color: #333; /* Darker text color for better readability */
+    }
+
+    #timePeriod {
+        padding: 5px 10px; /* Padding inside the dropdown */
+        border-radius: 4px; /* Rounded corners for the dropdown */
+        border: 1px solid #ccc; /* Light border */
+        font-size: 1em; /* Adjust font size */
+        cursor: pointer; /* Pointer on hover */
+    }
+
+
+
+

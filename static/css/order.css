@@ -1,9 +1,8 @@
-
-/* Content section adjustments */
+/* General Content Adjustments */
 .main-content {
     flex: 1;
     padding: 20px;
-    overflow: auto; /* Allows scrolling if content is too large */
+    overflow: auto;
 }
 
 .header {
@@ -17,35 +16,10 @@
 
 .tabs {
     display: flex;
-    justify-content: flex-start; /* Align buttons to the start */
+    justify-content: flex-start;
     align-items: center;
     padding: 10px 20px;
     border-bottom: 1px solid #e5e5e5;
-}
-
-.tabs-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 20px;
-    border-bottom: 1px solid #e5e5e5;
-}
-
-.tab-link {
-    background-color: #fff;
-    border: 1px solid #e5e5e5;
-    padding: 10px 20px;
-    margin-right: 10px;
-    cursor: pointer;
-    font-size: 16px;
-    border-radius: 5px;
-    transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-.tab-link.active {
-    background-color: #c8131a;
-    color: white;
-    border-color: #c8131a;
 }
 
 .filters {
@@ -64,38 +38,40 @@
     margin-right: 10px;
 }
 
-.order-list-header {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
+/* Order Table Styles */
+.order-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    font-size: 16px;
+    text-align: center;
     background-color: #fff;
-    color: black;
-    padding: 10px 20px;
+}
+
+.order-table thead tr {
+    background-color: #c8131a;
     font-weight: bold;
-    text-align: center; /* Center align header text */
 }
 
-.order-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+.order-table th, .order-table td {
+    padding: 10px 15px;
+    border: 1px solid #e5e5e5;
 }
 
-.order-item {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    padding: 10px 20px;
-    text-align: center; /* Center align item text */
-}
-
-.order-item:nth-child(even) {
+.order-table tbody tr:nth-child(even) {
     background-color: #f9f9f9;
+}
+
+.order-table tbody tr:hover {
+    background-color: #f1f1f1;
 }
 
 /* Specific alignment for date and status columns */
 .date, .status {
-    text-align: center; /* Center align text within these columns */
+    text-align: center;
 }
 
+/* Button Styles */
 .table-controls {
     display: flex;
     justify-content: flex-end;
@@ -118,12 +94,4 @@
 .edit-btn:hover,
 .delete-btn:hover {
     background-color: #c8131a;
-}
-
-.tab-content {
-    display: none;
-}
-
-.tab-content.active {
-    display: block;
 }
