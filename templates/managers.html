@@ -5,42 +5,77 @@
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-{% endblock %}
-
-{% block js %}
 <script src="{{ url_for('static', filename='java/dashboard.js') }}"></script>
 {% endblock %}
 
 {% block content %}
-<div class="profile-section">
+<div class="header">
     <h2>Dashboard</h2>
+    <div class="date-buttons">
+
+    </div>
 </div>
+
 <div class="dashboard-grid">
     <div class="daily-sales">
         <h3>Daily Sales</h3>
         <canvas id="dailySalesChart"></canvas>
         <button class="view-report">View Report</button>
     </div>
-    <div class="total-income">
-        <h3>Total Income</h3>
-        <div class="chart-container">
-            <canvas id="incomeChart"></canvas>
+
+    <!-- New Income Date Section -->
+    <div class="income-date-container">
+        <div class="date-buttons">
+            <button>Yesterday</button>
+            <button class="active">Today</button>
+            <button>Week</button>
+            <button>Month</button>
+            <button>Year</button>
         </div>
-        <div class="legend">
-        </div>
+        <br>
+        <div class="total-income">
+    <h3>Total Income: ₱0.00</h3>
+    <div class="chart-container">
+        <canvas id="incomeChart"></canvas>
     </div>
+</div>
+<br>
+    <!-- End of New Section -->
+
     <div class="total-orders">
         <h3>Total Orders</h3>
         <div class="order-number">234345</div>
     </div>
-    <div class="trending-dishes">
-        <h3>Trending Dishes</h3>
-        <select>
-            <option>Today</option>
-            <option>Yesterday</option>
-            <option>Week</option>
-            <option>Month</option>
-        </select>
+
+    <div class="trending-dishes-container">
+        <div class="header-row">
+            <h2>Trending Dishes</h2>
+            <select id="timePeriod">
+                <option value="today">Today</option>
+                <option value="yesterday">Yesterday</option>
+                <option value="this_week">This Week</option>
+                <option value="last_week">Last Week</option>
+            </select>
+        </div>
+        <canvas id="trendingDishesChart"></canvas>
     </div>
+
+    <!-- Modal for Report -->
+    <div id="reportModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>Daily Sales Report</h3>
+            <table id="salesReportTable">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Sales (₱)</th>
+                    </tr>
+                </thead>
+                <tbody id="salesReportBody"></tbody>
+            </table>
+        </div>
+    </div> </div>
+
 </div>
 {% endblock %}
