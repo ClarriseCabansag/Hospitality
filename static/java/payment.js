@@ -110,57 +110,58 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         confirmPaymentBtn.addEventListener('click', function () {
-            // Collect payment data
-            const orderId = document.querySelector('.order-id-value').textContent.trim();
-            const subtotal = parseFloat(document.querySelector('.subtotal p:nth-child(2)').textContent.replace('₱', '').replace(',', '')) || 0;
-            const tax = parseFloat((subtotal * 0.05).toFixed(2));
-            const total = parseFloat(totalAmountDisplay.textContent.replace('₱', '').replace(',', '')) || 0;
-            const cashReceived = parseFloat(cashDisplay.textContent.replace('₱', '').replace(',', '')) || 0; // Use cash from cashDisplay
-            const change = parseFloat(changeAmount.textContent.replace('₱', '').replace(',', '')) || 0;
-            const discountType = document.getElementById('discount-type').textContent.trim() || null;
-            const discountPercentage = parseFloat(discountAmountElement.textContent.replace('%', '')) / 100 || 0;
+    // Collect payment data
+    const orderId = document.querySelector('.order-id-value').textContent.trim();
+    const subtotal = parseFloat(document.querySelector('.subtotal p:nth-child(2)').textContent.replace('₱', '').replace(',', '')) || 0;
+    const tax = parseFloat((subtotal * 0.05).toFixed(2));
+    const total = parseFloat(totalAmountDisplay.textContent.replace('₱', '').replace(',', '')) || 0;
+    const cashReceived = parseFloat(cashDisplay.textContent.replace('₱', '').replace(',', '')) || 0; // Use cash from cashDisplay
+    const change = parseFloat(changeAmount.textContent.replace('₱', '').replace(',', '')) || 0;
 
-            // Check if cash is entered
-            if (isNaN(cashReceived) || cashReceived <= 0) {
-                alert('Please enter a valid cash amount.');
-                return; // Exit the function if cash is invalid
+    // Check if a discount has been applied
+    const discountType = document.getElementById('discount-type').textContent.trim() || null;
+    const discountPercentage = discountApplied ? parseFloat(discountAmountElement.textContent.replace('%', '')) / 100 : null;
+
+    // Check if cash is entered
+    if (isNaN(cashReceived) || cashReceived <= 0) {
+        alert('Please enter a valid cash amount.');
+        return; // Exit the function if cash is invalid
+    }
+
+    // Prepare data payload
+    const paymentData = {
+        order_id: orderId,
+        subtotal: subtotal,
+        tax: tax,
+        total: total,
+        cash_received: cashReceived,
+        change: change,
+        discount_type: discountType,
+        discount_percentage: discountPercentage
+    };
+
+    // Send data to the backend using fetch
+    fetch('/save_payment', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(paymentData)
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Payment saved successfully!');
+                showModal();
+            } else {
+                alert('Failed to save payment. Please try again.');
             }
-
-            // Prepare data payload
-            const paymentData = {
-                order_id: orderId,
-                subtotal: subtotal,
-                tax: tax,
-                total: total,
-                cash_received: cashReceived,
-                change: change,
-                discount_type: discountType,
-                discount_percentage: discountPercentage
-            };
-
-            // Send data to the backend using fetch
-            fetch('/save_payment', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(paymentData)
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Payment saved successfully!');
-                        showModal();
-                    } else {
-                        alert('Failed to save payment. Please try again.');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error saving payment:', error);
-                    alert('An error occurred. Please try again.');
-                });
+        })
+        .catch(error => {
+            console.error('Error saving payment:', error);
+            alert('An error occurred. Please try again.');
         });
-
+});
         closeModalButton.addEventListener('click', function () {
             hideModal();
         });
