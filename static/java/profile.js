@@ -168,23 +168,21 @@ function clearForm() {
 // Call the function when the page loads
 document.addEventListener('DOMContentLoaded', fetchCashiers);
 
-// Function to fetch cashiers from the server
 function fetchCashiers() {
-    fetch('/get_cashiers')  // Endpoint to fetch cashiers
+    fetch('/get_cashiers') // Endpoint to fetch cashiers
         .then(response => response.json())
         .then(data => {
             const tableBody = document.getElementById('cashierTable');
             tableBody.innerHTML = ''; // Clear the table before populating
 
             data.cashiers.forEach(cashier => {
-                const row = tableBody.insertRow();  // Insert a new row
-                row.setAttribute('data-id', cashier.id);  // Set cashier ID
+                const row = tableBody.insertRow(); // Insert a new row
+                row.setAttribute('data-id', cashier.id); // Set cashier ID
 
                 row.innerHTML = `
                     <td>${cashier.name}</td>
                     <td>${cashier.last_name}</td>
                     <td>${cashier.username}</td>
-                    <td>${cashier.passcode}</td>
                     <td>${cashier.date_created}</td>
                     <td>
                         <button class="action-btn edit-btn" onclick="editRow(this)">✏️</button>
@@ -197,6 +195,7 @@ function fetchCashiers() {
             console.error('Error fetching cashiers:', error);
         });
 }
+
 // Function to handle the update operation
 function updateCashier(cashierId) {
     const updatedData = {
@@ -229,17 +228,21 @@ function updateCashier(cashierId) {
 }
 
 function editRow(button) {
-    currentRow = button.closest('tr');  // Get the closest table row
+    currentRow = button.closest('tr'); // Get the closest table row
     const cells = currentRow.getElementsByTagName('td');
 
     // Populate the form with current data
     document.getElementById('firstName').value = cells[0].textContent;
     document.getElementById('lastName').value = cells[1].textContent;
     document.getElementById('username').value = cells[2].textContent;
-    document.getElementById('passcode').value = cells[3].textContent;
+
+    // Passcode is stored as a data attribute on the row for security
+    const passcode = currentRow.getAttribute('data-passcode');
+    document.getElementById('passcode').value = passcode || ''; // Default to empty if not available
 
     showForm(); // Show the form for editing
 }
+
 
 
 // Function to delete a cashier row with custom confirmation
