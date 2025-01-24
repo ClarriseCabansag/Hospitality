@@ -35,12 +35,6 @@
 
         <ul class="menu_items">
             <!-- Dashboard -->
-            <li class="item">
-                <a href="{{ url_for('dashboard1') }}" class="nav_link">
-                    <span class="navlink_icon"><i class="fa-solid fa-chart-line"></i></span>
-                    <span class="navlink">Dashboard</span>
-                </a>
-            </li>
             <!-- Financial Tracking -->
             <li class="item">
                 <div class="nav_link submenu_item">
@@ -49,7 +43,6 @@
                     <i class="bx bx-chevron-right arrow-left"></i>
                 </div>
                 <ul class="menu_items submenu">
-                    <a href="https://hospitality-pos1.onrender.com/sales_order" class="nav_link sublink">POS Cashier</a>
                     <a href="https://hospitality-pos1.onrender.com/managers" class="nav_link sublink" >POS Manager</a>
                 </ul>
             </li>
@@ -97,18 +90,12 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="#manage_user_levels" class="nav-link" id="manage_user_levels_tab" data-bs-toggle="tab">
-                                <i class="fa-solid fa-user-tag"></i> Manage User Levels
-                            </a>
-                        </li>
-                    </ul>
 
                     <div class="tab-content pt-3">
                         <div class="tab-pane fade show active" id="manage_users" role="tabpanel" aria-labelledby="manage_users_tab">
                             {% include 'user_management/um_tables/manage_users.html' %}
                         </div>
-                        <div class="tab-pane fade" id="manage_user_levels" role="tabpanel" aria-labelledby="manage_user_levels_tab">
-                            {% include 'user_management/um_tables/manage_user_levels.html' %}
+
                         </div>
                     </div>
                 </div>
