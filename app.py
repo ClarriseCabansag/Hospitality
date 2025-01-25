@@ -627,6 +627,27 @@ def save_payment():
 
     return jsonify({'success': True, 'message': 'Payment saved successfully'})
 
+@app.route('/get_payments', methods=['GET'])
+def get_payments():
+    # Query all payments from the database
+    payments = Payment.query.all()
+
+    # Prepare the payment data for the response
+    payments_data = []
+    for payment in payments:
+        payments_data.append({
+            'order_id': payment.order_id,
+            'subtotal': payment.subtotal,
+            'tax': payment.tax,
+            'total': payment.total,
+            'cash_received': payment.cash_received,
+            'change': payment.change,
+            'discount_type': payment.discount_type,
+            'discount_percentage': payment.discount_percentage,
+            'status': payment.status
+        })
+
+    return jsonify({'success': True, 'payments': payments_data})
 
 @app.route('/order_history')
 def order_history():
