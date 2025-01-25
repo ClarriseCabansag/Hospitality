@@ -762,3 +762,67 @@ font-size: 16px;
 .success-modal .close-btn:hover {
     background-color: #45a049;
 }
+/* Icon Styling */
+.modal-content .icon {
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.modal-content .icon i {
+    font-size: 8rem; /* Large receipt icon size */
+    color: #4caf50; /* Green color for the receipt icon */
+}
+
+/* Modal Styling */
+.print-receipt-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: #fff;
+    padding: 20px;
+    text-align: center;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    width: 300px;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.modal-content .message {
+    font-size: 1.2rem;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.modal-content .done-btn {
+    background-color: #4caf50;
+    color: white;
+    padding: 10px 20px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.modal-content .done-btn:hover {
+    background-color: #45a049;
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
