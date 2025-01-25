@@ -77,7 +77,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const tillAmount = parseFloat(tillAmountInput.value);
 
         if (!tillAmount || tillAmount <= 0) {
-            alert('Please enter a valid amount');
+            showErrorModal('Please enter a valid amount');
             return;
         }
 
@@ -97,13 +97,87 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (data.error) {
                     alert(data.error);
                 } else {
-                    alert('Till opened with amount: ₱' + data.amount);
+                    // Replace alert with the success modal
+                showSuccessModal('Till opened with amount: ₱' + data.amount);
+
                     document.getElementById('openTillAmount').style.display = 'none'; // Close the modal
                 }
             })
             .catch(error => console.error('Error:', error));
+              // Show Error Modal (Styled Like Image)
+function showErrorModal(message) {
+    const modal = document.createElement('div');
+    modal.classList.add('error-modal');
+
+    const modalContent = `
+        <div class="modal-content">
+            <div class="icon">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="red" class="error-icon">
+                    <circle cx="12" cy="12" r="10" fill="none" stroke="red"></circle>
+                    <line x1="9" y1="9" x2="15" y2="15" stroke="red"></line>
+                    <line x1="15" y1="9" x2="9" y2="15" stroke="red"></line>
+                </svg>
+            </div>
+            <h3>Invalid!</h3>
+            <p>${message}</p>
+            <button class="close-btn">Ok</button>
+        </div>
+    `;
+    modal.innerHTML = modalContent;
+    document.body.appendChild(modal);
+
+    // Close the modal
+    const closeBtn = modal.querySelector('.close-btn');
+    closeBtn.addEventListener('click', function () {
+        modal.remove();
     });
+
+    // Close modal when clicking outside of it
+    modal.addEventListener('click', function (e) {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
+}
+
+function showSuccessModal(message) {
+    const modal = document.createElement('div');
+    modal.classList.add('success-modal'); // Custom styling class
+
+    const modalContent = `
+        <div class="modal-content">
+            <div class="icon">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="green" class="success-icon">
+                    <circle cx="12" cy="12" r="10" fill="none" stroke="green"></circle>
+                    <path d="M9 12l2 2 4-4" stroke="green" stroke-width="2"></path>
+                </svg>
+            </div>
+            <h3> Till Amount Opened!</h3>
+            <p>${message}</p>
+            <button class="close-btn">Ok</button>
+        </div>
+    `;
+    modal.innerHTML = modalContent;
+    document.body.appendChild(modal);
+
+    // Close the modal
+    const closeBtn = modal.querySelector('.close-btn');
+    closeBtn.addEventListener('click', function () {
+        modal.remove();
+    });
+
+    // Close modal when clicking outside of it
+    modal.addEventListener('click', function (e) {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
+}
+    });
+
 });
+
+
 
 
 //menu.js
@@ -501,49 +575,91 @@ document.addEventListener("DOMContentLoaded", function() {
         return orderDetails;
     }
 
-    if (dineInButton && takeOutButton && continueButton) {
-        continueButton.addEventListener("click", async function() {
-            const orderDetails = collectOrderDetails();
+// Function to display a success modal
+function showSuccessModal(message, onOkCallback) {
+    const modal = document.createElement('div');
+    modal.classList.add('success-modal'); // Custom styling class
 
-            try {
-                const response = await fetch('/save_order', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(orderDetails),
-                });
+    const modalContent = `
+        <div class="modal-content">
+            <div class="icon">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="green" class="success-icon">
+                    <circle cx="12" cy="12" r="10" fill="none" stroke="green"></circle>
+                    <path d="M9 12l2 2 4-4" stroke="green" stroke-width="2"></path>
+                </svg>
+            </div>
+            <p>${message}</p>
+            <button class="close-btn">Ok</button>
+        </div>
+    `;
+    modal.innerHTML = modalContent;
+    document.body.appendChild(modal);
 
-                const result = await response.json();
-                if (result.success) {
-                    alert('Order saved successfully!');
+    // Handle "OK" button click
+    const closeBtn = modal.querySelector('.close-btn');
+    closeBtn.addEventListener('click', function () {
+        modal.remove();
+        if (typeof onOkCallback === 'function') {
+            onOkCallback(); // Execute the callback after clicking OK
+        }
+    });
+
+    // Close modal when clicking outside of it
+    modal.addEventListener('click', function (e) {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
+}
+
+// Updated payment.js logic
+if (dineInButton && takeOutButton && continueButton) {
+    continueButton.addEventListener("click", async function() {
+        const orderDetails = collectOrderDetails();
+
+        try {
+            const response = await fetch('/save_order', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(orderDetails),
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                showSuccessModal('Order saved successfully!', function() {
+                    // Redirect after clicking OK
                     if (orderDetails.orderType === 'Dine In') {
                         window.location.href = '/seats';
                     } else {
                         window.location.href = '/payment';
                     }
-                } else {
-                    alert('Failed to save the order: ' + result.error);
-                }
-            } catch (error) {
-                console.error('Error saving order:', error);
-                alert('An error occurred while saving the order.');
+                });
+            } else {
+                alert('Failed to save the order: ' + result.error);
             }
-        });
+        } catch (error) {
+            console.error('Error saving order:', error);
+            alert('An error occurred while saving the order.');
+        }
+    });
 
-        // Toggle 'clicked' class for order type selection
-        dineInButton.addEventListener('click', function() {
-            takeOutButton.classList.remove('clicked');
-            dineInButton.classList.toggle('clicked');
-        });
+    // Toggle 'clicked' class for order type selection
+    dineInButton.addEventListener('click', function() {
+        takeOutButton.classList.remove('clicked');
+        dineInButton.classList.toggle('clicked');
+    });
 
-        takeOutButton.addEventListener('click', function() {
-            dineInButton.classList.remove('clicked');
-            takeOutButton.classList.toggle('clicked');
-        });
-    } else {
-        console.log("One or more required elements are missing.");
-    }
+    takeOutButton.addEventListener('click', function() {
+        dineInButton.classList.remove('clicked');
+        takeOutButton.classList.toggle('clicked');
+    });
+} else {
+    console.log("One or more required elements are missing.");
+}
+
+
 });
 
 

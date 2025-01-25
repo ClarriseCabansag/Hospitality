@@ -264,32 +264,46 @@ if (confirmPaymentBtn && paymentModal && closeModalButton) {
     });
 }
 
-// Handle Printing Receipt and Redirecting
 if (closeModalButton) {
+    const printReceiptModal = document.getElementById('printReceiptModal');
+    const modalCloseButton = document.getElementById('modalCloseButton');
+
     closeModalButton.addEventListener('click', function () {
-        console.log('Print Official Receipt button clicked!');  // Log the button click to verify
+        console.log('Print Official Receipt button clicked!'); // Log the button click
 
-        // Simulate printing the receipt (you can replace this with your actual print functionality)
-        alert('Printing receipt...');
+        // Show the custom modal
+        if (printReceiptModal) {
+            printReceiptModal.style.display = 'flex';
+        }
 
-        // Redirect to the sales-order.html page
-        window.location.href = '/sales_order';  // Redirect to the sales-order page
+        // Simulate a delay for "Printing" functionality (e.g., 3 seconds)
+        setTimeout(() => {
+            console.log('Printing process completed.'); // Simulate print completion
+        }, 3000);
+    });
+
+    // Handle closing the modal
+    if (modalCloseButton) {
+        modalCloseButton.addEventListener('click', function () {
+            // Hide the modal
+            if (printReceiptModal) {
+                printReceiptModal.style.display = 'none';
+            }
+
+            // Redirect to the sales-order page
+            window.location.href = '/sales_order';
+        });
+    }
+
+    // Close the modal if clicking outside of it
+    window.addEventListener('click', function (event) {
+        if (event.target === printReceiptModal) {
+            printReceiptModal.style.display = 'none';
+        }
     });
 }
 
 
-    // Handle Printing Receipt and Redirecting
-    if (closeModalButton) {
-        closeModalButton.addEventListener('click', function () {
-            console.log('Print Official Receipt button clicked!');  // Log the button click to verify
-
-            // Simulate printing the receipt (you can replace this with your actual print functionality)
-            alert('Printing receipt...');
-
-            // Redirect to the sales-order.html page
-            window.location.href = '/sales_order';  // Redirect to the sales-order page
-        });
-    }
 
     // Discount Button Toggle Functionality (Senior / PWD)
     if (discountButtons.length > 0) {
