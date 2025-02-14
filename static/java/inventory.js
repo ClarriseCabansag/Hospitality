@@ -1,54 +1,368 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const inventoryTable = document.getElementById("inventory-table");
+document.addEventListener("DOMContentLoaded", async () => {
+    const addDishBtn = document.querySelector(".add-dish-btn");
+    const modal = document.getElementById("addDishModal");
+    const closeBtn = document.querySelector(".close");
+    const form = document.getElementById("addDishForm");
+    const editModal = document.getElementById("editDishModal");
+    const editCloseBtn = document.querySelector("#editDishModal .close");
+    const editForm = document.getElementById("editDishForm");
+    const dropdown = document.querySelector(".ingredients-dropdown");
+    const selectedText = document.getElementById("selectedIngredients");
+    const tableBody = document.querySelector("#inventoryTableBody");
+    const selectBox = document.querySelector(".select-box");
+    const priceInput = document.getElementById("price");
 
-    fetch("/api/inventory_data")
-        .then((response) => response.json())
-        .then((data) => {
-            if (data.length > 0) {
-                // Sort data by date (assuming 'date' format is '10 December 2024')
-                data.sort((a, b) => {
-                    const dateA = new Date(a.date);
-                    const dateB = new Date(b.date);
-                    return dateA - dateB;
-                });
+    let currentDishId = null;
 
-                inventoryTable.innerHTML = "";
-                data.forEach((item) => {
-                    const row = document.createElement("tr");
+    // Global map to store ingredient quantities
+    const ingredientQuantities = {};
 
-                    const uoiCell = document.createElement("td");
-                    uoiCell.textContent = item.uoi;
+    // Function to format price input dynamically without limiting digits
+    function formatPriceInput(value) {
+        let num = value.replace(/[^\d.]/g, ""); // Remove non-numeric characters except "."
+        let parts = num.split(".");
 
-                    const itemCell = document.createElement("td");
-                    itemCell.textContent = item.item;
+        if (parts.length > 2) {
+            num = parts[0] + "." + parts.slice(1).join(""); // Prevent multiple decimals
+        }
 
-                    const stockCell = document.createElement("td");
-                    stockCell.textContent = item.ending;
+        let [whole, decimal] = num.split(".");
+        decimal = decimal ? decimal.slice(0, 2) : ""; // Allow up to 2 decimal places
 
-                    const dateCell = document.createElement("td");
-                    dateCell.textContent = item.date;
+        return decimal ? `${whole}.${decimal}` : whole; // Show decimals only if entered
+    }
 
-                    row.appendChild(uoiCell);
-                    row.appendChild(itemCell);
-                    row.appendChild(stockCell);
-                    row.appendChild(dateCell);
+    // Apply price formatting when typing
+    priceInput.addEventListener("input", (e) => {
+        let cursorPosition = e.target.selectionStart;
+        let originalLength = e.target.value.length;
 
-                    inventoryTable.appendChild(row);
-                });
-            } else {
-                inventoryTable.innerHTML = `
-                    <tr>
-                        <td colspan="4" class="text-center">No data available</td>
-                    </tr>
-                `;
-            }
-        })
-        .catch((error) => {
-            console.error("Error fetching inventory data:", error);
-            inventoryTable.innerHTML = `
-                <tr>
-                    <td colspan="4" class="text-center">Error loading data</td>
-                </tr>
-            `;
+        let formattedValue = formatPriceInput(e.target.value);
+        e.target.value = formattedValue;
+
+        let newLength = formattedValue.length;
+        e.target.selectionStart = e.target.selectionEnd = cursorPosition + (newLength - originalLength);
+    });
+
+    async function fetchAndDisplayDishes() {
+        try {
+            const [dishesResponse, ingredientsResponse] = await Promise.all([
+                fetch("/get_dishes"),
+                fetch("/get_ingredients")
+            ]);
+
+            const dishes = await dishesResponse.json();
+            const ingredients = await ingredientsResponse.json();
+
+            console.log("Fetched Ingredients (Raw):", ingredients);
+
+            const ingredientStockMap = {};
+            ingredients.forEach(ing => {
+                console.log(`Mapping Ingredient: ${ing.item} → Stock: ${ing.stock}`);
+                ingredientStockMap[ing.item.trim()] = parseInt(ing.stock, 10) || 0; // Ensure it's a number
+            });
+
+            console.log("Final Ingredient Stock Map:", ingredientStockMap);
+
+            tableBody.innerHTML = "";
+            dishes.forEach(dish => addDishToTable(dish, ingredientStockMap));
+        } catch (error) {
+            console.error("Error fetching dishes or ingredients:", error);
+        }
+    }
+
+    // Fetch ingredients for the dropdown
+    async function fetchIngredients() {
+        try {
+            const response = await fetch("/get_ingredients");
+            const data = await response.json();
+            if (!Array.isArray(data)) throw new Error("Invalid data format");
+
+            dropdown.innerHTML = "";
+            data.forEach(item => {
+                const label = document.createElement("label");
+
+                const checkbox = document.createElement("input");
+                checkbox.type = "checkbox";
+                checkbox.value = item.item;
+                checkbox.addEventListener("change", updateSelectedIngredients);
+
+                const ingredientName = document.createElement("span");
+                ingredientName.textContent = item.item;
+
+                const itemContainer = document.createElement("div");
+                itemContainer.classList.add("ingredient-item");
+
+                itemContainer.appendChild(checkbox);
+                itemContainer.appendChild(ingredientName);
+                label.appendChild(itemContainer);
+
+                dropdown.appendChild(label);
+            });
+            dropdown.style.display = "none";
+        } catch (error) {
+            console.error("Error fetching ingredients:", error);
+            dropdown.innerHTML = "<p>Error loading ingredients</p>";
+        }
+    }
+
+    async function fetchIngredientsForEdit(dishId) {
+        try {
+            const response = await fetch("/get_ingredients");
+            const ingredients = await response.json();
+
+            const editDropdown = document.getElementById("editIngredientsDropdown");
+            editDropdown.innerHTML = "";
+            ingredients.forEach(item => {
+                const label = document.createElement("label");
+
+                const checkbox = document.createElement("input");
+                checkbox.type = "checkbox";
+                checkbox.value = item.item;
+                checkbox.checked = currentDishId.ingredients.includes(item.item);
+                checkbox.addEventListener("change", updateSelectedIngredientsForEdit);
+
+                const ingredientName = document.createElement("span");
+                ingredientName.textContent = item.item;
+
+                const itemContainer = document.createElement("div");
+                itemContainer.classList.add("ingredient-item");
+
+                itemContainer.appendChild(checkbox);
+                itemContainer.appendChild(ingredientName);
+                label.appendChild(itemContainer);
+
+                editDropdown.appendChild(label);
+            });
+        } catch (error) {
+            console.error("Error fetching ingredients:", error);
+        }
+    }
+
+    // Update selected ingredients display for Add Dish
+    function updateSelectedIngredients() {
+        const selectedValues = Array.from(dropdown.querySelectorAll("input:checked"))
+            .map(cb => cb.value); // Ipakita lang ang ingredient name
+
+        selectedText.textContent = selectedValues.length ? selectedValues.join(", ") : "Select Ingredients";
+    }
+
+    // Update selected ingredients display for Edit Dish
+    function updateSelectedIngredientsForEdit() {
+        const selectedValues = Array.from(document.getElementById("editIngredientsDropdown").querySelectorAll("input:checked"))
+            .map(cb => cb.value); // Ipakita lang ang ingredient name
+
+        document.getElementById("editSelectedIngredients").textContent = selectedValues.length ? selectedValues.join(", ") : "Select Ingredients";
+    }
+
+    // Toggle ingredient dropdown
+    selectBox.addEventListener("click", (e) => {
+        e.stopPropagation(); // Prevent click event from bubbling
+        dropdown.style.display = dropdown.style.display === "flex" ? "none" : "flex";
+    });
+
+    // Open modal to add dish
+    addDishBtn.addEventListener("click", () => {
+        modal.style.display = "block";
+        fetchIngredients();
+    });
+
+    // Close modals
+    closeBtn.addEventListener("click", () => {
+        modal.style.display = "none";
+    });
+
+    editCloseBtn.addEventListener("click", () => {
+        editModal.style.display = "none";
+    });
+
+    // Close modal when clicking outside of it
+    window.addEventListener("click", (e) => {
+        if (e.target === modal) {
+            modal.style.display = "none";
+        }
+        if (e.target === editModal) {
+            editModal.style.display = "none";
+        }
+    });
+
+// Handle form submission to add a dish
+form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const formData = new FormData();
+    formData.append("category", document.getElementById("category").value);
+    formData.append("name", document.getElementById("dishName").value);
+    formData.append("price", document.getElementById("price").value);
+
+    // Collect selected ingredients (without quantity)
+    const selectedIngredients = Array.from(dropdown.querySelectorAll("input:checked"))
+        .map(cb => cb.value);
+
+    selectedIngredients.forEach(ingredient => formData.append("ingredients", ingredient));
+
+    const imageUpload = document.getElementById("imageUpload").files[0];
+    if (imageUpload) {
+        formData.append("image", imageUpload);
+    }
+
+    try {
+        const response = await fetch("/add_dish", {
+            method: "POST",
+            body: formData
         });
+
+        const result = await response.json();
+        if (response.ok) {
+            alert("Dish added successfully!");
+            modal.style.display = "none";
+            form.reset();
+            selectedText.textContent = "Select Ingredients";
+            fetchAndDisplayDishes();
+        } else {
+            alert(`Error: ${result.error}`);
+        }
+    } catch (error) {
+        console.error("Error adding dish:", error);
+    }
+});
+
+
+    // Handle form submission to edit a dish
+editForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const formData = new FormData();
+    formData.append("category", document.getElementById("editCategory").value);
+    formData.append("name", document.getElementById("editDishName").value);
+    formData.append("price", document.getElementById("editPrice").value);
+
+    // Collect selected ingredients
+    const selectedIngredients = Array.from(document.getElementById("editIngredientsDropdown").querySelectorAll("input:checked"))
+        .map(cb => cb.value);
+    selectedIngredients.forEach(ingredient => formData.append("ingredients", ingredient));
+
+    const imageUpload = document.getElementById("editImageUpload").files[0];
+    if (imageUpload) {
+        formData.append("image", imageUpload);
+    }
+
+    try {
+        const response = await fetch(`/update_dish/${currentDishId}`, {
+            method: "PUT",
+            body: formData
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+            alert("Dish updated successfully!");
+            editModal.style.display = "none";
+            fetchAndDisplayDishes();
+        } else {
+            alert(`Error: ${result.error}`);
+        }
+    } catch (error) {
+        console.error("Error updating dish:", error);
+    }
+});
+
+
+    // Delete dish from the table and database
+    async function deleteDish(dishId) {
+    if (!confirm("Are you sure you want to delete this dish?")) {
+            return;
+        }
+        try {
+            const response = await fetch(`/delete_dish/${dishId}`, {
+                method: "DELETE",
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+                alert("Dish deleted successfully!");
+                fetchAndDisplayDishes();
+            } else {
+                alert(`Error: ${result.error}`);
+            }
+        } catch (error) {
+            console.error("Error deleting dish:", error);
+        }
+    }
+
+    // Open edit modal and load data
+    function openEditModal(dish) {
+        currentDishId = dish.id;
+        document.getElementById("editCategory").value = dish.category;
+        document.getElementById("editDishName").value = dish.name;
+        document.getElementById("editPrice").value = dish.price;
+        document.getElementById("editSelectedIngredients").textContent = dish.ingredients.join(", ");
+
+        fetchIngredientsForEdit(dish.id);
+
+        editModal.style.display = "block";
+    }
+
+    // Add dish to the table
+    function addDishToTable(dish, ingredientStockMap) {
+        let dishStock = "N/A";
+
+        if (typeof dish.ingredients === "string") {
+            dish.ingredients = dish.ingredients.split(",").map(ing => ing.trim());
+        }
+
+        if (dish.ingredients.length > 0) {
+            let stockValues = dish.ingredients.map(ingredient => {
+                let cleanIngredient = ingredient.split(":")[0].trim();
+                if (cleanIngredient.toLowerCase().includes("chicken (quarter leg)")) {
+                    return ingredientStockMap[cleanIngredient] > 0 ? ingredientStockMap[cleanIngredient] : 1;
+                }
+                return ingredientStockMap[cleanIngredient] !== undefined ? ingredientStockMap[cleanIngredient] : 0;
+            });
+
+            dishStock = stockValues.length ? Math.min(...stockValues) : 0;
+        }
+
+        const dishRow = document.createElement("tr");
+        dishRow.innerHTML = `
+            <td>${dish.id}</td>
+            <td>${dish.category || ""}</td>
+            <td>${dish.name}</td>
+            <td>${dishStock}</td>
+            <td>₱${parseFloat(dish.price).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+            <td><img src="${dish.image_url}" class="img-fluid" width="50"></td>
+            <td>
+                <i class="fa-solid fa-pen-to-square edit-dish" data-id="${dish.id}"></i>
+                <i class="fa-solid fa-trash delete-dish" data-id="${dish.id}"></i>
+            </td>
+        `;
+        tableBody.appendChild(dishRow);
+
+        // Attach delete functionality to the delete icon
+        dishRow.querySelector(".delete-dish").addEventListener("click", () => {
+            deleteDish(dish.id);
+        });
+
+        // Attach edit functionality to the edit icon
+        dishRow.querySelector(".edit-dish").addEventListener("click", () => {
+            openEditModal(dish);
+        });
+
+        // Display ingredients and quantities in table
+        if (dish.ingredients.length > 0) {
+            dish.ingredients.forEach(ingredient => {
+                const ingredientRow = document.createElement("tr");
+                ingredientRow.innerHTML = `
+                    <td></td>
+                    <td></td>
+                    <td colspan="1" class="ingredient-row">➜ ${ingredient}</td>
+                    <td>${ingredientStockMap[ingredient] || 0}</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                `;
+                tableBody.appendChild(ingredientRow);
+            });
+        }
+    }
+
+    // Load dishes when the page loads
+    fetchAndDisplayDishes();
 });

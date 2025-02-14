@@ -178,9 +178,7 @@ function showSuccessModal(message) {
 });
 
 
-
-
-//menu.js
+//menu.js//
 document.addEventListener('DOMContentLoaded', function () {
     const categories = document.querySelectorAll('.category'); // All category buttons
     const menuSections = document.querySelectorAll('.menu-items'); // All menu sections
@@ -200,9 +198,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 const container = document.getElementById(containerId);
                 container.innerHTML = '';
 
-                // Filter items matching any of the category keywords
+                // Filter items matching any of the category keywords (case-insensitive)
                 const filteredItems = data.filter(item =>
-                    categoryKeywords.some(keyword => item.uoi.trim().toLowerCase() === keyword.toLowerCase())
+                    categoryKeywords.some(keyword => item.category.trim().toLowerCase() === keyword.toLowerCase())
                 );
 
                 if (filteredItems.length === 0) {
@@ -214,26 +212,42 @@ document.addEventListener('DOMContentLoaded', function () {
                     menuItem.classList.add('menu-item');
                     menuItem.setAttribute('data-category', categoryKeywords.join(', '));
 
-                    const imageUrl = `https://material-management-system-2.onrender.com${item.image_url}`;
+                    const imageUrl = item.image_url || '/path/to/default-image.jpg';  // Use a default image if none provided
+
                     menuItem.innerHTML = `
-                        <img src="${imageUrl}" alt="${item.item}" onerror="this.src='/path/to/default-image.jpg';">
-                        <p>${item.item}</p>
-                        <span>₱${item.price.toFixed(2)}</span>
+                        <img src="${imageUrl}" alt="${item.name}" onerror="this.src='/path/to/default-image.jpg';">
+                        <p>${item.name}</p>
+                        <span>₱${item.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+
+                        </div>
                     `;
                     container.appendChild(menuItem);
+
+                    // Add event listener for the ingredients dropdown toggle
+                    const toggleButton = menuItem.querySelector('.toggle-ingredients');
+                    const dropdown = menuItem.querySelector('.ingredients-dropdown');
+                    toggleButton.addEventListener('click', function () {
+                        if (dropdown.style.display === 'none') {
+                            dropdown.style.display = 'block';
+                            toggleButton.textContent = 'Hide Ingredients';
+                        } else {
+                            dropdown.style.display = 'none';
+                            toggleButton.textContent = 'Show Ingredients';
+                        }
+                    });
                 });
             })
             .catch(error => console.error(`Error fetching data for categories: ${categoryKeywords}`, error));
     };
 
     // Fetch items for each category
-    fetchAndDisplayCategoryItems(['SOLO BOODLE FLIGHT'], 'menu-grid-solo');
-    fetchAndDisplayCategoryItems(['BOODLE FLIGHTS'], 'menu-grid-boodle');
-    fetchAndDisplayCategoryItems(['A LA CARTE'], 'menu-grid-a-la-carte');
-    fetchAndDisplayCategoryItems(['SINGLE FLIGHTS'], 'menu-grid-single-flights');
-    fetchAndDisplayCategoryItems(['INTERNATIONAL FLIGHTS'], 'menu-grid-international-flights');
-    fetchAndDisplayCategoryItems(['UNCLE D\'S ICE CREAM SANDWICH'], 'menu-grid-uncle');
-    fetchAndDisplayCategoryItems(['DRINKS', 'BEERS', 'SHAKES'], 'menu-grid-drinks'); // Combine Drinks, Beers, and Shakes
+    fetchAndDisplayCategoryItems(['Solo Boodle Flight'], 'menu-grid-solo');
+    fetchAndDisplayCategoryItems(['Boodle Flight'], 'menu-grid-boodle');
+    fetchAndDisplayCategoryItems(['A La Carte'], 'menu-grid-a-la-carte');
+    fetchAndDisplayCategoryItems(['Single Flights'], 'menu-grid-single-flights');
+    fetchAndDisplayCategoryItems(['International Flights'], 'menu-grid-international-flights');
+    fetchAndDisplayCategoryItems(['Uncle Ice Cream'], 'menu-grid-uncle');
+    fetchAndDisplayCategoryItems(['Drinks', 'Beers', 'Shakes'], 'menu-grid-drinks');
 
     // Add category filtering functionality
     categories.forEach(category => {
@@ -266,6 +280,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 });
+
 
 
 //ordersummary.js
