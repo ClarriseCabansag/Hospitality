@@ -1,8 +1,6 @@
-/* inventory_management.css */
-
 /* General Styles */
 body {
-    font-family: Arial, sans-serif;
+    font-family: Poppins, sans-serif;
     background-color: #fdf5e6; /* Light beige background */
     color: #333; /* Dark gray text */
 }
@@ -15,9 +13,24 @@ h2 {
     margin-bottom: 20px;
     font-weight: 600;
     font-size: 50px;
-    font-family:'Poppins', sans-serif;
-    color:#d32f2f;
+    font-family: 'Poppins', sans-serif;
+    color: #d32f2f;
     margin-top: 20px;
+}
+
+/* Button Styling */
+.button-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 20px;
+}
+
+.add-dish-btn {
+    background-color: #c8131a;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
 }
 
 /* Table Styles */
@@ -32,8 +45,8 @@ h2 {
 .table td {
     padding: 10px;
     border: 1px solid #ccc;
-    text-align: center;
-    word-wrap: break-word; /* Prevents content overflow */
+    text-align: center; /* Center the icons horizontally */
+    vertical-align: middle; /* Center them vertically */
 }
 
 .table th {
@@ -47,13 +60,203 @@ h2 {
 }
 
 .table-danger td {
-    background-color: #d32f2f; /* Red background for section headers */
-    color: white;
+    background-color: white;
+    color: black;
     text-align: left;
 }
 
-/* Miscellaneous */
-img.img-fluid {
-    max-width: 100%;
-    height: auto;
+/* Center and enlarge action icons */
+.table td i {
+    display: inline-block;
+    font-size: 1.5rem; /* Increase icon size */
+    margin: 0 5px; /* Add spacing between icons */
+    cursor: pointer; /* Show pointer on hover */
+}
+
+/* Responsive Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 120%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    background-color: #fff;
+    padding: 20px;
+    width: 50%; /* Default width for large screens */
+    max-width: 600px; /* Prevents the modal from getting too big */
+    margin: 10% auto;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Close Button */
+.close {
+    float: right;
+    font-size: 28px;
+    cursor: pointer;
+}
+
+/* Form Layout */
+.form-group {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+/* Ensure all input fields, select, and file input are equal size */
+.form-group input,
+.form-group select,
+.form-group input[type="file"] {
+    flex: 1;
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    box-sizing: border-box; /* Ensures padding doesn't affect width */
+}
+
+.file-ingredients-container {
+    display: flex;
+    align-items: center;  /* Para pantay sa taas */
+    gap: 10px;  /* Bawasan ang space sa pagitan */
+}
+
+.file-ingredients-container input[type="file"],
+.file-ingredients-container .select-box {
+    flex: 1; /* Pantay na width */
+    max-width: 300px; /* Adjust kung gusto mong palakihin o paliitin */
+    min-width: 150px;
+}
+
+/* Ensure file input height matches other inputs */
+.form-group input[type="file"] {
+    height: 42px;
+    padding: 8px;
+}
+
+.select-box {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    background: white;
+    cursor: pointer;
+    position: relative;
+}
+
+.ingredients-dropdown {
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    width: 100%;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 5px;
+    z-index: 10;
+}
+
+.ingredients-dropdown label {
+    display: flex;
+    align-items: center;
+    padding: 5px;
+    cursor: pointer;
+}
+
+.ingredients-dropdown label:hover {
+    background: #f0f0f0;
+}
+
+.ingredients-dropdown .ingredient-item {
+    display: grid;
+    grid-template-columns: auto 100px 1fr; /* 3 columns: checkbox, quantity, text */
+    gap: 10px;
+    align-items: center;
+    width: 100%;
+}
+
+.ingredients-dropdown input[type="checkbox"] {
+    margin: 0; /* Remove margin */
+}
+
+.ingredients-dropdown .ingredient-item input {
+    width: 100%; /* Make the input take up full width of its column */
+    padding: 5px;
+    font-size: 14px;
+    text-align: center;
+}
+
+.ingredients-dropdown .ingredient-item label {
+    text-align: left;
+}
+
+
+.ingredients-dropdown .ingredient-item input {
+    width: 60px;
+    text-align: center;
+    padding: 5px;
+    font-size: 14px;
+}
+
+/* Ensure the text (ingredient name) stays on the far right */
+.ingredients-dropdown .ingredient-item label {
+    justify-content: flex-start; /* Moves the text to the far right */
+}
+
+.add-btn {
+    display: block;
+    width: 100%;
+    margin: 10px auto 0;
+    padding: 10px;
+    background-color: #c8131a;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+
+/* Responsive Design for Smaller Screens */
+@media (max-width: 768px) {
+    .modal-content {
+        width: 90%;
+        height:60%;
+        padding: 15px;
+    }
+
+    .form-group {
+        flex-direction: column; /* Stack inputs vertically */
+        gap: 5px; /* Reduce spacing */
+    }
+
+    .form-group input,
+    .form-group select,
+    {
+        width: 100%; /* Full width on small screens */
+    }
+
+    .add-btn {
+        padding: 12px;
+    }
+
+    .file-ingredients-container {
+        flex-direction: column; /* Stack elements vertically */
+        align-items: stretch; /* Para same width sila */
+    }
+
+    .file-ingredients-container input[type="file"],
+    .file-ingredients-container .select-box {
+        max-width: 100%; /* Para full width sa mobile */
+    }
 }
