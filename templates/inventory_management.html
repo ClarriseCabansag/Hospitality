@@ -9,23 +9,113 @@
 {% block js %}
 <script src="{{ url_for('static', filename='java/inventory.js') }}" defer></script>
 {% endblock %}
+
 {% block content %}
 <div class="container">
     <h2>Inventory Management</h2>
+    <div class="button-container">
+        <button class="add-dish-btn">+ Add Dish</button>
+    </div>
+
     <table class="table table-bordered">
         <thead>
             <tr>
-                <th>UOI</th>
+                <th>UID</th>
+                <th>Category</th>
                 <th>Item Name</th>
                 <th>Stock</th>
-                <th>Date</th>
+                <th>Price</th>
+                <th>Image</th>
+                <th>Actions</th>
             </tr>
         </thead>
-        <tbody id="inventory-table">
-            <tr>
-                <td colspan="4" class="text-center">Loading data...</td>
-            </tr>
+        <tbody id="inventoryTableBody">
+            <!-- New dishes will be dynamically added here -->
         </tbody>
     </table>
 </div>
+
+<!-- Add Dish Modal -->
+<div id="addDishModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <br>
+        <h2>Add New Dish</h2>
+        <br>
+        <form id="addDishForm">
+            <div class="form-group">
+                <select id="category" required>
+                    <option value="" disabled selected>Select Category</option>
+                    <option value="Solo Boodle Flight">Solo Boodle Flight</option>
+                    <option value="Boodle Flight">Boodle Flight</option>
+                    <option value="A La Carte">A La Carte</option>
+                    <option value="Single Flights">Single Flights</option>
+                    <option value="International Flights">International Flights</option>
+                    <option value="Uncle Ice Cream">Uncle D's Ice Cream</option>
+                    <option value="Drinks">Drinks</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <input type="text" id="dishName" placeholder="Item Name" required>
+                <input type="text" id="price" placeholder="Price" required>
+            </div>
+
+            <div class="form-group file-ingredients-container">
+            <input type="file" id="imageUpload" accept="image/*">
+            <div class="select-box">
+                <div id="selectedIngredients">Select Ingredients</div>
+                <div class="ingredients-dropdown">
+                    <!-- Ingredients will be loaded dynamically -->
+                </div>
+            </div>
+        </div>
+<br>
+            <button type="submit" class="add-btn">Add</button>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Dish Modal -->
+<div id="editDishModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <br>
+        <h2>Edit Dish</h2>
+        <br>
+        <form id="editDishForm">
+            <div class="form-group">
+                <select id="editCategory" required>
+                    <option value="" disabled selected>Select Category</option>
+                    <option value="Solo Boodle Flight">Solo Boodle Flight</option>
+                    <option value="Boodle Flight">Boodle Flight</option>
+                    <option value="A La Carte">A La Carte</option>
+                    <option value="Single Flights">Single Flights</option>
+                    <option value="International Flights">International Flights</option>
+                    <option value="Uncle Ice Cream">Uncle D's Ice Cream</option>
+                    <option value="Drinks">Drinks</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <input type="text" id="editDishName" placeholder="Item Name" required>
+                <input type="text" id="editPrice" placeholder="Price" required>
+            </div>
+
+            <div class="form-group file-ingredients-container">
+                <input type="file" id="editImageUpload" accept="image/*">
+                <div class="select-box">
+                    <div id="editSelectedIngredients">Select Ingredients</div>
+                    <div class="ingredients-dropdown" id="editIngredientsDropdown">
+                        <!-- Ingredients will be loaded dynamically -->
+                    </div>
+                </div>
+            </div>
+            <br>
+            <button type="submit" class="edit-btn">Update</button>
+        </form>
+    </div>
+</div>
+
+
 {% endblock %}
