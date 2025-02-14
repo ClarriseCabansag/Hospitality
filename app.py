@@ -1,9 +1,12 @@
 import json
+import os
 from datetime import datetime, timedelta
 import requests
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
+from werkzeug.utils import secure_filename
 from models.Cashier import Cashier
 from models.Manager import Manager
+from models.dish import Dish
 from models.order import Orders,OrderItem
 from models.Till import OpenTill
 from models.payment import Payment
@@ -20,6 +23,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 # Initialize Flask application
 app = Flask(__name__)
 app.config.from_object('config.Config')
+UPLOAD_FOLDER = "static/img/"
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
 
 # Initialize database and migration
 db.init_app(app)
@@ -259,8 +265,10 @@ def check_till_status():
 @app.route('/save_order', methods=['POST'])
 def save_order():
     if not request.is_json:
-        return jsonify({'success': False, 'error': "Unsupported Media Type: Content-Type "
-                                                   "must be 'application/json'"}), 415
+        return jsonify({
+            'success': False,
+            'error': "Unsupported Media Type: Content-Type must be 'application/json'"
+        }), 415
 
     try:
         data = request.get_json()
@@ -284,7 +292,7 @@ def save_order():
         )
         db.session.add(new_order)
 
-        # Save each item
+        # Process each ordered item
         for item in items:
             order_item = OrderItem(
                 order_id=order_id,
@@ -294,9 +302,35 @@ def save_order():
             )
             db.session.add(order_item)
 
+            # Find the dish by name
+            dish = Dish.query.filter_by(name=item['name']).first()
+            if dish:
+                # Deduct the dish stock if the field exists
+                if hasattr(dish, 'stock'):
+                    original_stock = dish.stock
+                    dish.stock = dish.stock - item['quantity']
+                    print(f"[Dish Stock Update] {dish.name}: {original_stock} -> {dish.stock}")
+                else:
+                    print(f"[Dish Stock Update] {dish.name} does not have a stock attribute.")
+
+                # Extract ingredients from dish's JSON string and log usage
+                if dish.ingredients:
+                    try:
+                        # Ingredients should be stored in JSON format: {"flour": 100, "sugar": 50}
+                        ingredients_required = json.loads(dish.ingredients)
+                    except Exception as e:
+                        print(f"[Ingredients Parsing Error] Dish {dish.name}: {e}")
+                        ingredients_required = {}
+
+                    for ing_name, required_qty in ingredients_required.items():
+                        total_required = required_qty * item['quantity']
+                        print(f"[Ingredient Usage] {ing_name}: Used {total_required} for {dish.name}.")
+            else:
+                print(f"[Dish Not Found] Dish '{item['name']}' not found in inventory.")
+
         db.session.commit()
 
-        # Store order details in session
+        # Optionally store order details in session for payment
         session['payment_data'] = {
             'order_id': order_id,
             'order_date': order_date,
@@ -307,51 +341,21 @@ def save_order():
         return jsonify({'success': True, 'redirect_url': url_for('payment')}), 200
 
     except Exception as e:
+        db.session.rollback()
+        print(f"[Order Save Error] {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
-
-@app.route('/get_orders', methods=['GET'])
-def get_orders():
-    try:
-        # Query all orders
-        orders = Orders.query.all()
-
-        # Prepare data to return
-        result = []
-        for order in orders:
-            order_items = OrderItem.query.filter_by(order_id=order.order_id).all()
-            items = [
-                {
-                    'item_name': item.item_name,
-                    'item_price': item.item_price,
-                    'quantity': item.quantity
-                }
-                for item in order_items
-            ]
-
-            result.append({
-                'order_id': order.order_id,
-                'date': order.date,
-                'order_type': order.order_type,
-                'total_amount': order.total_amount,
-                'items': items
-            })
-
-        return jsonify({'success': True, 'orders': result}), 200
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/inventory_data')
 def get_inventory_data():
-    inventory_url = "https://material-management-system-2.onrender.com/api/inventory_summary"
-    response = requests.get(inventory_url)
-
-    if response.status_code == 200:
-        inventory_data = response.json()
+    try:
+        dishes = Dish.query.all()
+        inventory_data = [dish.to_dict() for dish in dishes]
         return jsonify(inventory_data)
-    else:
-        return jsonify({"error": "Failed to fetch inventory data"}), response.status_code
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 
 @app.route('/main')
@@ -852,39 +856,161 @@ def delete_cashier(cashier_id):
 
 @app.route('/inventory_management')
 def inventory_management():
-    api_url = "https://material-management-system-2.onrender.com/api/inventory_summary"
     try:
-        response = requests.get(api_url)
-        response.raise_for_status()  # Raise an error for HTTP issues
-        inventory_data = response.json()  # Assuming the API returns JSON data
+        response = requests.get("https://material-management-system-2.onrender.com/api/inventory_summary")
+        ingredients = response.json() if response.status_code == 200 else []
+    except Exception as e:
+        print(f"Error fetching ingredients: {e}")
+        ingredients = []
 
-        # Sort data by date (assuming 'date' is in the format '10 December 2024')
-        inventory_data = sorted(
-            inventory_data,
-            key=lambda x: datetime.strptime(x['date'], "%d %B %Y")  # Adjust format here
-        )
-    except requests.RequestException as e:
-        print(f"Error fetching data from API: {e}")
-        inventory_data = []  # Fallback to empty data in case of errors
+    return render_template('inventory_management.html', ingredients=ingredients)
 
-    return render_template('inventory_management.html', inventory_data=inventory_data)
-
-@app.route('/api/inventory_data')
-def inventory_data():
-    api_url = "https://material-management-system-2.onrender.com/api/inventory_summary"
+@app.route('/get_ingredients')
+def get_ingredients():
     try:
-        response = requests.get(api_url)
-        response.raise_for_status()
-        inventory_data = response.json()
-        inventory_data = sorted(
-            inventory_data,
-            key=lambda x: datetime.strptime(x['date'], "%d %B %Y")
-        )
-    except requests.RequestException as e:
-        print(f"Error fetching data from API: {e}")
-        inventory_data = []
+        response = requests.get("https://material-management-system-2.onrender.com/api/inventory_summary")
+        ingredients_data = response.json() if response.status_code == 200 else []
 
-    return jsonify(inventory_data)
+        # Ensure each item has a correct stock value, with a minimum of 1 stock
+        formatted_ingredients = [
+            {
+                "item": item["item"],
+                "stock": max(item.get("ending", 0), 1)  # Ensure minimum stock of 1
+            }
+            for item in ingredients_data
+        ]
+
+        return jsonify(formatted_ingredients)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+
+
+
+
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route('/add_dish', methods=['POST'])
+def add_dish():
+    try:
+        data = request.form
+        category = data.get('category')
+        name = data.get('name')
+        price = data.get('price')
+        ingredients = request.form.getlist('ingredients')  # Listahan ng ingredients na walang quantity
+
+        if not name or not price:
+            return jsonify({"error": "Name and price are required"}), 400
+
+        image_url = "/static/img/default.jpg"
+        if "image" in request.files:
+            file = request.files["image"]
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                file_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+                file.save(file_path)
+                image_url = f"/static/img/{filename}"
+
+        new_dish = Dish(
+            category=category,
+            name=name,
+            price=float(price),
+            image_url=image_url,
+            ingredients=",".join(ingredients)  # Walang quantity, ingredient name lang
+        )
+        db.session.add(new_dish)
+        db.session.commit()
+
+        return jsonify({
+            "message": "Dish added successfully!",
+            "dish": {
+                "id": new_dish.id,
+                "category": new_dish.category,
+                "name": new_dish.name,
+                "price": new_dish.price,
+                "image_url": new_dish.image_url,
+                "ingredients": new_dish.ingredients
+            }
+        }), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/get_dishes', methods=['GET'])
+def get_dishes():
+    try:
+        dishes = Dish.query.all()
+        dish_list = [{
+            "id": dish.id,
+            "category": dish.category,
+            "name": dish.name,
+            "price": dish.price,
+            "image_url": dish.image_url,
+            "ingredients": dish.ingredients.split(",") if dish.ingredients else []
+        } for dish in dishes]
+
+        # Fetch stock data from inventory API
+        inventory_response = requests.get("https://material-management-system-2.onrender.com/api/inventory_summary")
+        inventory_data = inventory_response.json() if inventory_response.status_code == 200 else []
+
+        # Create a mapping of ingredients to their stock levels
+        stock_map = {item["item"]: item.get("ending", 0) for item in inventory_data}
+
+        # Attach stock levels to dishes
+        for dish in dish_list:
+            stock_values = [stock_map.get(ingredient.strip(), 0) for ingredient in dish["ingredients"]]
+            dish["stock"] = min(stock_values) if stock_values else 0  # Kunin ang pinakamababang stock
+
+        return jsonify(dish_list), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/delete_dish/<int:dish_id>', methods=['DELETE'])
+def delete_dish(dish_id):
+    try:
+        # Assuming you have a Dish model and a delete method
+        dish = Dish.query.get(dish_id)
+        if dish:
+            db.session.delete(dish)
+            db.session.commit()
+            return jsonify({"message": "Dish deleted successfully!"}), 200
+        else:
+            return jsonify({"error": "Dish not found"}), 404
+    except Exception as e:
+        print(f"Error deleting dish: {e}")
+        return jsonify({"error": "An error occurred while deleting the dish"}), 500
+
+
+@app.route('/update_dish/<int:dish_id>', methods=['PUT'])
+def update_dish(dish_id):
+    dish = Dish.query.get(dish_id)
+    if not dish:
+        return jsonify({'error': 'Dish not found'}), 404
+
+    category = request.form.get('category', dish.category)
+    name = request.form.get('name', dish.name)
+    price = request.form.get('price', dish.price)
+
+    # Get ingredients, convert to comma-separated string
+    ingredients_list = request.form.getlist('ingredients')
+    ingredients = ', '.join(ingredients_list) if ingredients_list else dish.ingredients
+
+    image = request.files.get('image')
+
+    if image:
+        image_filename = os.path.join(app.config['UPLOAD_FOLDER'], image.filename)
+        image.save(image_filename)
+        dish.image_url = f"/{image_filename}"
+
+    dish.category = category
+    dish.name = name
+    dish.price = float(price)
+    dish.ingredients = ingredients  # Update ingredients
+
+    db.session.commit()
+    return jsonify({'message': 'Dish updated successfully', 'image_url': dish.image_url})
 
 @app.route('/cashier_summary')
 def cashier_summary():
