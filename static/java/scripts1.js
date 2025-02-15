@@ -188,57 +188,44 @@ document.addEventListener('DOMContentLoaded', function () {
         section.style.display = 'block';
     });
 
-    const fetchAndDisplayCategoryItems = (categoryKeywords, containerId) => {
-        fetch('/api/inventory_data')
-            .then(response => response.json())
-            .then(data => {
-                console.log(`Fetched Data for categories: ${categoryKeywords}`, data);
+const fetchAndDisplayCategoryItems = (categoryKeywords, containerId) => {
+    fetch('/api/inventory_data')
+        .then(response => response.json())
+        .then(data => {
+            console.log(`Fetched Data for categories: ${categoryKeywords}`, data);
 
-                // Clear the container
-                const container = document.getElementById(containerId);
-                container.innerHTML = '';
+            const container = document.getElementById(containerId);
 
-                // Filter items matching any of the category keywords (case-insensitive)
-                const filteredItems = data.filter(item =>
-                    categoryKeywords.some(keyword => item.category.trim().toLowerCase() === keyword.toLowerCase())
-                );
+            // Filter items that exactly match the category
+            const filteredItems = data.filter(item =>
+                categoryKeywords.some(keyword =>
+                    item.category.trim().toLowerCase() === keyword.toLowerCase()
+                )
+            );
 
-                if (filteredItems.length === 0) {
-                    console.warn(`No items found for categories: ${categoryKeywords}`);
-                }
+            if (filteredItems.length === 0) {
+                console.warn(`No items found for categories: ${categoryKeywords}`);
+            }
 
-                filteredItems.forEach(item => {
-                    const menuItem = document.createElement('div');
-                    menuItem.classList.add('menu-item');
-                    menuItem.setAttribute('data-category', categoryKeywords.join(', '));
+            filteredItems.forEach(item => {
+                const menuItem = document.createElement('div');
+                menuItem.classList.add('menu-item');
+                menuItem.setAttribute('data-category', categoryKeywords.join(', '));
 
-                    const imageUrl = item.image_url || '/path/to/default-image.jpg';  // Use a default image if none provided
+                const imageUrl = item.image_url || '/path/to/default-image.jpg';
 
-                    menuItem.innerHTML = `
-                        <img src="${imageUrl}" alt="${item.name}" onerror="this.src='/path/to/default-image.jpg';">
-                        <p>${item.name}</p>
-                        <span>₱${item.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                menuItem.innerHTML = `
+                    <img src="${imageUrl}" alt="${item.name}" onerror="this.src='/path/to/default-image.jpg';">
+                    <p>${item.name}</p>
+                    <span>₱${item.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                `;
 
-                        </div>
-                    `;
-                    container.appendChild(menuItem);
+                container.appendChild(menuItem);
+            });
+        })
+        .catch(error => console.error(`Error fetching data for categories: ${categoryKeywords}`, error));
+};
 
-                    // Add event listener for the ingredients dropdown toggle
-                    const toggleButton = menuItem.querySelector('.toggle-ingredients');
-                    const dropdown = menuItem.querySelector('.ingredients-dropdown');
-                    toggleButton.addEventListener('click', function () {
-                        if (dropdown.style.display === 'none') {
-                            dropdown.style.display = 'block';
-                            toggleButton.textContent = 'Hide Ingredients';
-                        } else {
-                            dropdown.style.display = 'none';
-                            toggleButton.textContent = 'Show Ingredients';
-                        }
-                    });
-                });
-            })
-            .catch(error => console.error(`Error fetching data for categories: ${categoryKeywords}`, error));
-    };
 
     // Fetch items for each category
     fetchAndDisplayCategoryItems(['Solo Boodle Flight'], 'menu-grid-solo');
