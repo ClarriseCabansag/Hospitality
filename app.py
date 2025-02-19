@@ -298,7 +298,8 @@ def save_order():
                 order_id=order_id,
                 item_name=item['name'],
                 item_price=item['price'],
-                quantity=item['quantity']
+                quantity=item['quantity'],
+                ingredients=item.get('ingredients', '')  # ✅ Store ingredients
             )
             db.session.add(order_item)
 
@@ -344,6 +345,42 @@ def save_order():
         db.session.rollback()
         print(f"[Order Save Error] {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/get_orders', methods=['GET'])
+def get_orders():
+    try:
+        # Fetch all orders
+        orders = Orders.query.all()
+        orders_list = []
+
+        for order in orders:
+            # Fetch all items related to the current order
+            order_items = OrderItem.query.filter_by(order_id=order.order_id).all()
+
+            # Format order items
+            items_list = []
+            for item in order_items:
+                items_list.append({
+                    "name": item.item_name,
+                    "quantity": item.quantity,
+                    "price": item.item_price,
+                    "ingredients": item.ingredients  # Include ingredients
+                })
+
+            # Append order details
+            orders_list.append({
+                "orderID": order.order_id,
+                "date": order.date,
+                "orderType": order.order_type,
+                "totalAmount": order.total_amount,
+                "items": items_list
+            })
+
+        return jsonify({"success": True, "orders": orders_list}), 200
+
+    except Exception as e:
+        print(f"[Error Fetching Orders] {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
 
 
 
