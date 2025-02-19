@@ -19,5 +19,9 @@ class OrderItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     order_id = db.Column(db.String(50), db.ForeignKey('orders.order_id'), nullable=False)
     item_name = db.Column(db.String(100), nullable=False)
+    ingredients = db.Column(db.String(255), nullable=True)  # New column to store ingredients as a string
     item_price = db.Column(db.Float, nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
+
+
+
