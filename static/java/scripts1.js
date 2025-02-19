@@ -178,17 +178,17 @@ function showSuccessModal(message) {
 });
 
 
-//menu.js//
-document.addEventListener('DOMContentLoaded', function () {
-    const categories = document.querySelectorAll('.category'); // All category buttons
-    const menuSections = document.querySelectorAll('.menu-items'); // All menu sections
+    //menu.js//
+    document.addEventListener('DOMContentLoaded', function () {
+        const categories = document.querySelectorAll('.category'); // All category buttons
+        const menuSections = document.querySelectorAll('.menu-items'); // All menu sections
 
-    // Display all sections by default
-    menuSections.forEach(section => {
-        section.style.display = 'block';
-    });
+        // Display all sections by default
+        menuSections.forEach(section => {
+            section.style.display = 'block';
+        });
 
-const fetchAndDisplayCategoryItems = (categoryKeywords, containerId) => {
+   const fetchAndDisplayCategoryItems = (categoryKeywords, containerId) => {
     fetch('/api/inventory_data')
         .then(response => response.json())
         .then(data => {
@@ -196,7 +196,6 @@ const fetchAndDisplayCategoryItems = (categoryKeywords, containerId) => {
 
             const container = document.getElementById(containerId);
 
-            // Filter items that exactly match the category
             const filteredItems = data.filter(item =>
                 categoryKeywords.some(keyword =>
                     item.category.trim().toLowerCase() === keyword.toLowerCase()
@@ -213,10 +212,23 @@ const fetchAndDisplayCategoryItems = (categoryKeywords, containerId) => {
                 menuItem.setAttribute('data-category', categoryKeywords.join(', '));
 
                 const imageUrl = item.image_url || '/path/to/default-image.jpg';
+                const pcs = item.pcs ? `${item.pcs} pcs` : ''; // Ensure pcs is stored
+
+                // Ensure each ingredient has a pcs count
+                const formattedIngredients = item.ingredients
+                    .split(',')
+                    .map(ing => {
+                        const match = ing.trim().match(/^(\d*)\s*pcs\s*(.+)$/i);
+                        const quantity = match ? match[1] : "1"; // Default to 1 pcs
+                        const name = match ? match[2] : ing.trim();
+                        return `${quantity} pcs ${name}`;
+                    })
+                    .join(', ');
 
                 menuItem.innerHTML = `
                     <img src="${imageUrl}" alt="${item.name}" onerror="this.src='/path/to/default-image.jpg';">
-                    <p>${item.name}</p>
+                    <p class="item-name">${item.name}</p>
+                    <p class="ingredients">${formattedIngredients}</p> <!-- Correctly formatted ingredients -->
                     <span>₱${item.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 `;
 
@@ -227,211 +239,195 @@ const fetchAndDisplayCategoryItems = (categoryKeywords, containerId) => {
 };
 
 
-    // Fetch items for each category
-    fetchAndDisplayCategoryItems(['Solo Boodle Flight'], 'menu-grid-solo');
-    fetchAndDisplayCategoryItems(['Boodle Flight'], 'menu-grid-boodle');
-    fetchAndDisplayCategoryItems(['A La Carte'], 'menu-grid-a-la-carte');
-    fetchAndDisplayCategoryItems(['Single Flights'], 'menu-grid-single-flights');
-    fetchAndDisplayCategoryItems(['International Flights'], 'menu-grid-international-flights');
-    fetchAndDisplayCategoryItems(['Uncle Ice Cream'], 'menu-grid-uncle');
-    fetchAndDisplayCategoryItems(['Drinks', 'Beers', 'Shakes'], 'menu-grid-drinks');
+        // Fetch items for each category
+        fetchAndDisplayCategoryItems(['Solo Boodle Flight'], 'menu-grid-solo');
+        fetchAndDisplayCategoryItems(['Boodle Flight'], 'menu-grid-boodle');
+        fetchAndDisplayCategoryItems(['A La Carte'], 'menu-grid-a-la-carte');
+        fetchAndDisplayCategoryItems(['Single Flights'], 'menu-grid-single-flights');
+        fetchAndDisplayCategoryItems(['International Flights'], 'menu-grid-international-flights');
+        fetchAndDisplayCategoryItems(['Uncle Ice Cream'], 'menu-grid-uncle');
+        fetchAndDisplayCategoryItems(['Drinks', 'Beers', 'Shakes'], 'menu-grid-drinks');
 
-    // Add category filtering functionality
-    categories.forEach(category => {
-        category.addEventListener('click', function () {
-            const selectedCategory = this.getAttribute('data-category');
+        // Add category filtering functionality
+        categories.forEach(category => {
+            category.addEventListener('click', function () {
+                const selectedCategory = this.getAttribute('data-category');
 
-            // Remove 'active' class from all categories
-            categories.forEach(cat => cat.classList.remove('active'));
+                // Remove 'active' class from all categories
+                categories.forEach(cat => cat.classList.remove('active'));
 
-            // Add 'active' class to the clicked category
-            this.classList.add('active');
+                // Add 'active' class to the clicked category
+                this.classList.add('active');
 
-            if (selectedCategory === 'all') {
-                // Show all menu sections
-                menuSections.forEach(section => {
-                    section.style.display = 'block';
-                });
-            } else {
-                // Hide all menu sections
-                menuSections.forEach(section => {
-                    section.style.display = 'none';
-                });
+                if (selectedCategory === 'all') {
+                    // Show all menu sections
+                    menuSections.forEach(section => {
+                        section.style.display = 'block';
+                    });
+                } else {
+                    // Hide all menu sections
+                    menuSections.forEach(section => {
+                        section.style.display = 'none';
+                    });
 
-                // Show the selected category's menu items
-                const activeSection = document.getElementById(selectedCategory);
-                if (activeSection) {
-                    activeSection.style.display = 'block';
+                    // Show the selected category's menu items
+                    const activeSection = document.getElementById(selectedCategory);
+                    if (activeSection) {
+                        activeSection.style.display = 'block';
+                    }
                 }
-            }
+            });
         });
     });
-});
 
 
-
-//ordersummary.js
+//ordersummary.js//
 document.addEventListener('DOMContentLoaded', function () {
     const emptyCart = document.getElementById('emptyCart');
     const orderOptions = document.getElementById('orderOptions');
     const orderSummary = document.getElementById('orderSummary');
     const totalAmountContainer = document.getElementById('totalAmountContainer');
-    const totalAmountElement = document.getElementById('totalAmount'); // Element to display total amount
+    const totalAmountElement = document.getElementById('totalAmount');
     const btnDineIn = document.querySelector('.btn-dine-in');
     const btnTakeOut = document.querySelector('.btn-take-out');
 
-    let orderID = null; // To store the orderID for the session
+    let orderID = null;
 
-    // Function to generate a unique order ID (for simplicity, using a timestamp)
     function generateOrderID() {
         return 'ORD' + Date.now();
     }
 
-    // Function to get the current date in a readable format
     function getCurrentDate() {
         const date = new Date();
         return date.toDateString();
     }
 
-    // Function to update the quantity
+    function ensureOrderDetails() {
+        if (!orderID) {
+            orderID = generateOrderID();
+        }
+        const currentDate = getCurrentDate();
+
+        let orderContainer = document.querySelector('.order-container');
+        if (!orderContainer) {
+            orderContainer = document.createElement('div');
+            orderContainer.classList.add('order-container');
+            orderContainer.innerHTML = `
+                <p><strong>Order ID:</strong> ${orderID}</p>
+                <p><strong>Date:</strong> ${currentDate}</p>
+            `;
+            orderSummary.prepend(orderContainer);
+        }
+    }
+
     function updateQuantity(button, increment) {
         const quantityElement = button.closest('.order-controls').querySelector('.quantity');
         let quantity = parseInt(quantityElement.textContent, 10);
-        quantity = Math.max(1, quantity + increment); // Prevent quantity from going below 1
+        quantity = Math.max(1, quantity + increment);
         quantityElement.textContent = quantity;
-
-        calculateTotalAmount(); // Recalculate total after changing quantity
+        calculateTotalAmount();
     }
 
-    // Function to calculate the total amount of the order
     function calculateTotalAmount() {
         let totalAmount = 0;
-
-        // Loop through all order items and calculate the total price
         const items = orderSummary.querySelectorAll('.item-container');
         items.forEach(item => {
             const priceElement = item.querySelector('.order-item-content span');
             const quantityElement = item.querySelector('.quantity');
-
-            const price = parseFloat(priceElement.textContent.replace(/[^\d.-]/g, '')); // Extract number from price
+            const price = parseFloat(priceElement.textContent.replace(/[^\d.-]/g, ''));
             const quantity = parseInt(quantityElement.textContent, 10);
-
-            totalAmount += price * quantity; // Add item total to the total amount
+            totalAmount += price * quantity;
         });
-
-        // Update the total amount display
         totalAmountElement.textContent = `₱${totalAmount.toFixed(2)}`;
     }
 
-    // Function to delete an order item
     function deleteOrderItem(button) {
         const itemContainer = button.closest('.item-container');
-        itemContainer.remove(); // Remove the selected item
+        itemContainer.remove();
+        calculateTotalAmount();
 
-        calculateTotalAmount(); // Recalculate the total after deletion
-
-        // Check if the cart is now empty
         if (orderSummary.querySelectorAll('.item-container').length === 0) {
             orderID = null;
-
-            // Remove order ID and date container
-            const orderContainer = orderSummary.querySelector('.order-container');
-            if (orderContainer) {
-                orderContainer.remove();
-            }
-
+            const orderContainer = document.querySelector('.order-container');
+            if (orderContainer) orderContainer.remove();
             emptyCart.style.display = 'block';
             orderOptions.style.display = 'none';
             totalAmountContainer.style.display = 'none';
         }
     }
 
-    // Function to handle the "Edit" button click and show the modal
     function handleEditButton(button) {
-        const itemContainer = button.closest('.item-container'); // Get the clicked item's container
-
-        // Display the modal
+        const itemContainer = button.closest('.item-container');
         const noteModal = document.getElementById('noteModal');
         noteModal.style.display = 'block';
 
-        // Get the existing notes for this item (if any)
         const existingNotes = itemContainer.querySelector('.order-notes')?.textContent || '';
         const noteInput = noteModal.querySelector('#noteInput');
-        noteInput.value = existingNotes.replace('Notes: ', ''); // Populate input with existing notes
+        noteInput.value = existingNotes.replace('Notes: ', '');
 
-        // Add event listeners for Add and Cancel buttons
         const addNoteButton = noteModal.querySelector('#addNoteButton');
         const cancelNoteButton = noteModal.querySelector('#cancelNoteButton');
 
         addNoteButton.onclick = function () {
-    const notes = noteInput.value.trim(); // Get the notes from the input
-    let notesElement = itemContainer.querySelector('.order-notes');
+            const notes = noteInput.value.trim();
+            let notesElement = itemContainer.querySelector('.order-notes');
 
-    if (!notesElement) {
-        // If notes element doesn't exist, create it
-        notesElement = document.createElement('div');
-        notesElement.classList.add('order-notes');
-        const priceElement = itemContainer.querySelector('.order-item-content span');
-        priceElement.insertAdjacentElement('afterend', notesElement); // Insert notes directly below price
-    }
+            if (!notesElement) {
+                notesElement = document.createElement('div');
+                notesElement.classList.add('order-notes');
+                const priceElement = itemContainer.querySelector('.order-item-content span');
+                priceElement.insertAdjacentElement('afterend', notesElement);
+            }
 
-    notesElement.textContent = `Notes: ${notes}`; // Update or add the notes
-    noteModal.style.display = 'none'; // Close the modal
-};
+            notesElement.textContent = `Notes: ${notes}`;
+            noteModal.style.display = 'none';
+        };
 
         cancelNoteButton.onclick = function () {
-            noteModal.style.display = 'none'; // Close the modal without saving
+            noteModal.style.display = 'none';
         };
     }
 
-    // Event delegation for menu item image clicks (for all categories)
     document.querySelectorAll('.menu-grid').forEach(menuGrid => {
         menuGrid.addEventListener('click', function (event) {
             if (event.target.tagName === 'IMG') {
                 const clickedImage = event.target;
-                const menuItem = clickedImage.closest('.menu-item'); // Get the parent .menu-item element
-                const itemName = menuItem.querySelector('p').textContent;
+                const menuItem = clickedImage.closest('.menu-item');
+                const itemName = menuItem.querySelector('.item-name').textContent;
+                const itemIngredients = menuItem.querySelector('.ingredients').textContent;
                 const itemPrice = menuItem.querySelector('span').textContent;
 
-                // Check if the item already exists in the order summary
+                const formattedIngredients = itemIngredients
+                    .split(',')
+                    .map(ing => ing.trim())
+                    .join(', ');
+
+                ensureOrderDetails();
+
                 const existingItem = Array.from(orderSummary.querySelectorAll('.order-item-content')).find(item => {
-                    return item.querySelector('p').textContent === itemName;
+                    return item.querySelector('p.item-name').textContent === itemName;
                 });
 
                 if (existingItem) {
-                    // If the item exists, increase its quantity
                     const quantityElement = existingItem.closest('.item-container').querySelector('.quantity');
                     quantityElement.textContent = parseInt(quantityElement.textContent, 10) + 1;
-
-                    calculateTotalAmount(); // Recalculate total after increasing quantity
-                    return; // Exit the function, no need to add a new item
+                    calculateTotalAmount();
+                    return;
                 }
 
-                // Hide the empty cart section
                 emptyCart.style.display = 'none';
-
-                // Show the order options section
                 orderOptions.style.display = 'block';
 
-                // Generate the order ID only if it's null (i.e., first item clicked in this session)
-                if (!orderID) {
-                    orderID = generateOrderID();
-                }
-
-                // Get the current date
-                const currentDate = getCurrentDate();
-
-                // Create a new container for the image, name, price, and buttons
                 const itemContainer = document.createElement('div');
                 itemContainer.classList.add('item-container');
 
-                // Create item details element
                 const itemElement = document.createElement('div');
                 itemElement.classList.add('order-item');
                 itemElement.innerHTML = `
                     <img src="${clickedImage.src}" alt="${itemName}" class="order-summary-image">
                     <div class="order-item-content">
-                        <p>${itemName}</p>
+                        <p class="item-name">${itemName}</p>
+                        <p class="order-ingredients">${formattedIngredients}</p>
                         <span>${itemPrice}</span>
                     </div>
                 `;
@@ -454,37 +450,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>
                 `;
 
-                // Append item details and controls to the item container
                 itemContainer.appendChild(itemElement);
                 itemContainer.appendChild(controlsElement);
-
-                // If this is the first item, display the order ID and date only once
-                if (orderSummary.childElementCount === 0) {
-                    // Create the container for order ID and date
-                    const orderContainer = document.createElement('div');
-                    orderContainer.classList.add('order-container');
-
-                    // Create order summary elements
-                    const orderIDElement = document.createElement('div');
-                    orderIDElement.innerHTML = `<p>Order ID</p><p>${orderID}</p>`;
-
-                    const dateElement = document.createElement('div');
-                    dateElement.innerHTML = `<p>Date</p><p>${currentDate}</p>`;
-
-                    // Append order ID and date to the container
-                    orderContainer.appendChild(orderIDElement);
-                    orderContainer.appendChild(dateElement);
-
-                    // Append the order ID and date container at the top of the summary
-                    orderSummary.appendChild(orderContainer);
-                }
-
-                // Append the item to the order summary (without removing the existing ones)
                 orderSummary.appendChild(itemContainer);
-                calculateTotalAmount(); // Calculate total after adding an item
+
+                calculateTotalAmount();
             }
         });
     });
+
 
     // Event listeners for minus and plus buttons
     orderSummary.addEventListener('click', function (event) {
@@ -532,50 +506,54 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Function to collect order details
     function collectOrderDetails() {
-        const orderDetails = {
-            orderID: null,
-            date: null,
-            items: [],
-            orderType: null,
-            totalAmount: null,
-        };
+    const orderDetails = {
+        orderID: null,
+        date: null,
+        items: [],
+        orderType: null,
+        totalAmount: null,
+    };
 
-        // Get Order ID and Date
-        const orderContainer = document.querySelector('.order-container');
-        if (orderContainer) {
-            orderDetails.orderID = orderContainer.querySelector('p:nth-child(2)').textContent;
-            orderDetails.date = orderContainer.querySelector('div:nth-child(2) p:nth-child(2)').textContent;
-        }
-
-        // Get Menu Items and Quantities
-        const items = document.querySelectorAll('.item-container');
-        items.forEach(item => {
-            const itemName = item.querySelector('.order-item-content p').textContent;
-            const itemPrice = parseFloat(item.querySelector('.order-item-content span').textContent.replace(/[^\d.-]/g, ''));
-            const itemQuantity = parseInt(item.querySelector('.quantity').textContent, 10);
-
-            orderDetails.items.push({
-                name: itemName,
-                price: itemPrice,
-                quantity: itemQuantity,
-            });
-        });
-
-        // Get Order Type
-        if (dineInButton.classList.contains('clicked')) {
-            orderDetails.orderType = 'Dine In';
-        } else if (takeOutButton.classList.contains('clicked')) {
-            orderDetails.orderType = 'Take Out';
-        }
-
-        // Get Total Amount
-        const totalAmountElement = document.getElementById('totalAmount');
-        if (totalAmountElement) {
-            orderDetails.totalAmount = parseFloat(totalAmountElement.textContent.replace(/[^\d.-]/g, ''));
-        }
-
-        return orderDetails;
+    // Get Order ID and Date
+    const orderContainer = document.querySelector('.order-container');
+    if (orderContainer) {
+        orderDetails.orderID = orderContainer.querySelector('p:nth-child(1)').textContent.replace('Order ID: ', '');
+        orderDetails.date = orderContainer.querySelector('p:nth-child(2)').textContent.replace('Date: ', '');
     }
+
+    // Get Menu Items, Quantities, and Ingredients
+    const items = document.querySelectorAll('.item-container');
+    items.forEach(item => {
+        const itemName = item.querySelector('.order-item-content .item-name').textContent;
+        const itemPrice = parseFloat(item.querySelector('.order-item-content span').textContent.replace(/[^\d.-]/g, ''));
+        const itemQuantity = parseInt(item.querySelector('.quantity').textContent, 10);
+        const itemIngredients = item.querySelector('.order-ingredients').textContent;
+
+        orderDetails.items.push({
+            name: itemName,
+            price: itemPrice,
+            quantity: itemQuantity,
+            ingredients: itemIngredients  // ✅ Include ingredients
+        });
+    });
+
+    // Get Order Type
+    if (dineInButton.classList.contains('clicked')) {
+        orderDetails.orderType = 'Dine In';
+    } else if (takeOutButton.classList.contains('clicked')) {
+        orderDetails.orderType = 'Take Out';
+    }
+
+    // Get Total Amount
+    const totalAmountElement = document.getElementById('totalAmount');
+    if (totalAmountElement) {
+        orderDetails.totalAmount = parseFloat(totalAmountElement.textContent.replace(/[^\d.-]/g, ''));
+    }
+
+    return orderDetails;
+}
+
+
 
 // Function to display a success modal
 function showSuccessModal(message, onOkCallback) {
@@ -685,4 +663,4 @@ if (dineInButton && takeOutButton && continueButton) {
         }
 
         // Call the function when the page loads
-        window.onload = loadCashierName;
+   window.onload = loadCashierName;
