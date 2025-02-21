@@ -394,7 +394,6 @@ def get_inventory_data():
         return jsonify({"error": str(e)}), 500
 
 
-
 @app.route('/main')
 def main():
     return render_template('main.html')
@@ -634,7 +633,11 @@ def mark_table_available():
 def payment():
     payment_data = session.get('payment_data', {})
     payment_status = payment_data.get('status', 'Pending')
-    return render_template('payment.html', **payment_data, status=payment_status)
+
+    order_id = payment_data.get('order_id')
+    order_items = OrderItem.query.filter_by(order_id=order_id).all() if order_id else []
+
+    return render_template('payment.html', **payment_data, status=payment_status, order_items=order_items)
 
 
 @app.route('/save_payment', methods=['POST'])
@@ -668,27 +671,41 @@ def save_payment():
 
     return jsonify({'success': True, 'message': 'Payment saved successfully'})
 
+
 @app.route('/get_payments', methods=['GET'])
 def get_payments():
-    # Query all payments from the database
-    payments = Payment.query.all()
+    try:
+        payments = Payment.query.all()
+        payments_data = []
 
-    # Prepare the payment data for the response
-    payments_data = []
-    for payment in payments:
-        payments_data.append({
-            'order_id': payment.order_id,
-            'subtotal': payment.subtotal,
-            'tax': payment.tax,
-            'total': payment.total,
-            'cash_received': payment.cash_received,
-            'change': payment.change,
-            'discount_type': payment.discount_type,
-            'discount_percentage': payment.discount_percentage,
-            'status': payment.status
-        })
+        for payment in payments:
+            order_items = OrderItem.query.filter_by(order_id=payment.order_id).all()
 
-    return jsonify({'success': True, 'payments': payments_data})
+            # Extract items info
+            items = [{
+                'item_name': item.item_name,
+                'ingredients': item.ingredients,
+                'quantity': item.quantity
+            } for item in order_items]
+
+            payments_data.append({
+                'order_id': payment.order_id,
+                'items': items,  # List of items belonging to this order
+                'subtotal': float(payment.subtotal),
+                'tax': float(payment.tax),
+                'total': float(payment.total),
+                'cash_received': float(payment.cash_received),
+                'change': float(payment.change),
+                'discount_type': payment.discount_type,
+                'discount_percentage': payment.discount_percentage,
+                'status': payment.status
+            })
+
+        return jsonify({'success': True, 'payments': payments_data})
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 
 @app.route('/order_history')
 def order_history():
@@ -920,11 +937,6 @@ def get_ingredients():
         return jsonify(formatted_ingredients)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-
-
-
-
 
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
