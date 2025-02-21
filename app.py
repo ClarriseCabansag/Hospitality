@@ -2,6 +2,8 @@ import json
 import os
 from datetime import datetime, timedelta
 import requests
+from pytz import timezone
+import pytz  # Import pytz properly
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 from werkzeug.utils import secure_filename
 from models.Cashier import Cashier
@@ -709,7 +711,9 @@ def get_payments():
 
 @app.route('/order_history')
 def order_history():
-    # Fetch only completed orders
+    ph_tz = timezone('Asia/Manila')  # Philippine Timezone
+    utc_tz = pytz.utc  # UTC Timezone
+
     completed_orders = db.session.query(Orders, Payment).outerjoin(Payment, Orders.order_id == Payment.order_id).filter(
         Payment.status == 'Complete').all()
 
@@ -718,13 +722,29 @@ def order_history():
         order_items = db.session.query(OrderItem).filter(OrderItem.order_id == order.order_id).all()
         order_details = ', '.join([f"{item.item_name} (x{item.quantity})" for item in order_items])
 
+        # ✅ Ensure created_at is timezone-aware (assume UTC)
+        if payment and payment.created_at:
+            if payment.created_at.tzinfo is None:  # If naive, assume UTC
+                created_at_utc = utc_tz.localize(payment.created_at)
+            else:
+                created_at_utc = payment.created_at.astimezone(utc_tz)  # Ensure it's in UTC
+
+            # ✅ Convert to Philippine Time
+            created_at_ph = created_at_utc.astimezone(ph_tz)
+
+            order_time = created_at_ph.strftime("%I:%M %p")  # 12-hour format with AM/PM
+            order_date = created_at_ph.strftime("%b %d, %Y")  # Example: "Feb 21, 2025"
+        else:
+            order_time = 'N/A'
+            order_date = 'N/A'
+
         order_data.append({
             'order_id': order.order_id,
             'order_details': order_details,
-            'date': order.date,
-            'time': payment.created_at.strftime("%I:%M %p") if payment else 'N/A',
+            'date': order_date,
+            'time': order_time,
             'order_type': order.order_type,
-            'order_status': payment.status if payment else 'Pending',  # This will always be 'Complete' now
+            'order_status': payment.status if payment else 'Pending',
             'amount': f"₱{payment.subtotal:,.2f}" if payment else "₱0.00"
         })
 
