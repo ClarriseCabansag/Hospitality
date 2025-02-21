@@ -23,7 +23,7 @@
                     <a href="{{ url_for('profile_management') }}"><i class="fas fa-user-cog"></i><span class="menu-text">Profile Management</span></a>
                 </li>
                 <li class="menu-item {% if request.endpoint == 'inventory_management' %}active{% endif %}">
-                    <a href="{{ url_for('inventory_management') }}"><i class="fas fa-boxes"></i><span class="menu-text">Inventory Management</span></a>
+                    <a href="{{ url_for('inventory_management') }}"><i class="fas fa-boxes"></i><span class="menu-text">Menu Creation</span></a>
                 </li>
                 <li class="menu-item {% if request.endpoint == 'cashier_summary' %}active{% endif %}">
                     <a href="{{ url_for('cashier_summary') }}"><i class="fas fa-cash-register"></i><span class="menu-text">Cashier Summary</span></a>

@@ -23,42 +23,71 @@
                 <span class="order-id-value">{{ order_id or 'Order ID Not Available' }}</span>
             </div>
             <div class="order-info">
-                <p>{{ order_date or 'Date Not Available' }}</p>
-                <p>{{ order_type or 'Order Type Not Available' }}</p>
+            <p>{{ order_date or 'Date Not Available' }}</p>
+            <p>{{ order_type or 'Order Type Not Available' }}</p>
+        </div>
+        <hr class="order-info-separator">
+
+        <div class="order-items">
+            {% for item in order_items %}
+            <div class="item-row">
+                <p class="item-name"><strong>{{ item.item_name or 'Item Name Not Available' }}</strong></p>
+                <p class="item-price"><strong>₱{{ "%.2f"|format(item.item_price) }}</strong></p>
             </div>
-            <hr class="order-info-separator">
+            <p class="ingredients">- {{ item.ingredients or 'No Ingredients' }}</p>
+            <p class="quantity">Quantity: {{ item.quantity or '0' }}</p>
+            <hr>
+            {% endfor %}
+        </div>
+
+
+
+
             <div class="order-totals">
                 <div class="subtotal">
                     <p>Subtotal</p>
                     <p>₱{{ subtotal or '0.00' }}</p>
                 </div>
-                <div class="tax">
-                    <p>Tax 5%</p>
-                    <p>₱{{ "%.2f"|format(subtotal * 0.05) if subtotal else '0.00' }}</p>
-                </div>
-                <!-- Discount Section -->
-                <div class="discount-section" style="display: none;">
-                    <div class="discount-line">
-                        <span id="discount-type">Discount Type: </span> <!-- This will display the actual discount type -->
-                        <span id="discount-amount">20%</span>
+                    <div class="vat-sales">
+                        <p>VAT Sales</p>
+                        <p>₱{{ "%.2f"|format(subtotal / 1.12) if subtotal else '0.00' }}</p>
+                    </div>
+                    <div class="vat-amount">
+                        <p>12% VAT</p>
+                        <p>₱{{ "%.2f"|format(subtotal - (subtotal / 1.12)) if subtotal else '0.00' }}</p>
+                    </div>
+                    <!-- Discount Section -->
+                  <!-- Discountable Amount -->
+                    <div class="discountable-amount" style="display: none;">
+                        <p>Discountable Amount:</p>
+                        <p id="discountable-value" class="right-align">₱0.00</p>
+                    </div>
+
+                    <!-- Senior/PWD Discount -->
+                    <div class="discount-section" style="display: none;">
+                        <div class="discount-line">
+                            <span>Senior Discount</span>
+                            <span id="discount-amount" class="center-align">20%</span>
+                            <span id="discount-detail" class="right-align">-₱0.00</span>
+                        </div>
+                    </div>
+
+                    <div class="total">
+                        <p>Total Amount</p>
+                        <p id="total-amount">₱{{ subtotal or '0.00' }}</p>
                     </div>
                 </div>
-                <div class="total">
-                    <p>Total Amount</p>
-                    <p id="total-amount">₱{{ "%.2f"|format(subtotal * 1.05) if subtotal else '0.00' }}</p>
-                </div>
-            </div>
 
             <div class="payment-summary">
-    <div class="payment-row">
-        <p class="label">Cash:</p>
-        <p id="cash-display">₱0.00</p> <!-- Placeholder for displaying cash -->
-    </div>
-    <div class="payment-row">
-        <p class="label">Change:</p>
-        <p id="change-amount">₱0.00</p>
-    </div>
-</div>
+                <div class="payment-row">
+                    <p class="label">Cash:</p>
+                    <p id="cash-display">₱0.00</p>
+                </div>
+                <div class="payment-row">
+                    <p class="label">Change:</p>
+                    <p id="change-amount">₱0.00</p>
+                </div>
+            </div>
 
             <button class="confirm-btn">
                 <i class="fas fa-wallet"></i> Confirm Payment
@@ -68,23 +97,25 @@
         <!-- Summary Container -->
         <div class="summary-container">
             <!-- Discount Summary -->
-            <div class="discount-summary">
-                <div class="discount-header">
-                    <h2>Discount</h2>
-                    <div class="tabs">
-                        <button class="tab-btn active" id="senior-btn">Senior</button>
-                        <button class="tab-btn" id="pwd-btn">PWD</button>
-                    </div>
-                </div>
-                <div class="input-fields">
-                    <input type="text" placeholder="Enter Name">
-                    <input type="text" placeholder="Enter Account Number">
-                </div>
-                <div class="discount-actions">
-                    <button class="cancel-btn">Cancel</button>
-                    <button class="apply-btn">Apply</button>
-                </div>
-            </div>
+<div class="discount-summary">
+    <div class="discount-header">
+        <h2>Discount</h2>
+        <div class="tabs">
+            <button class="tab-btn active" id="senior-btn">Senior</button>
+            <button class="tab-btn" id="pwd-btn">PWD</button>
+        </div>
+    </div>
+    <div class="input-fields">
+        <input type="text" id="name-input" placeholder="Enter Name">
+        <input type="text" id="id-input" placeholder="Enter ID Number">
+    </div>
+    <div class="discount-actions">
+        <button class="cancel-btn">Cancel</button>
+        <button class="apply-btn">Apply</button>
+    </div>
+    <!-- ✅ Placeholder for showing Name & ID after discount is applied -->
+    <div id="applied-discount-info" style="display: none;"></div>
+</div>
 
             <!-- Payment Method -->
             <div class="payment-method">
@@ -93,7 +124,7 @@
                     <button class="tab-btn active">Cash</button>
                 </div>
                 <div class="payment-input">
-                  <input type="text" id="cash-input" placeholder="Enter Cash" />
+                    <input type="text" id="cash-input" placeholder="Enter Cash" />
                 </div>
                 <div class="payment-actions">
                     <button class="cancel-btn">Cancel</button>
@@ -103,6 +134,7 @@
         </div>
     </div>
 </div>
+
 
 <!-- Payment Modal -->
 <div class="modal" id="paymentModal" style="display: none;">
