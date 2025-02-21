@@ -13,21 +13,6 @@ document.addEventListener('DOMContentLoaded', function () {
         return `${hours}:${minutes} ${ampm}`;
     }
 
-    // Function to update time to current time
-    function updateOrderTimes() {
-        const orders = document.querySelectorAll('#orderList tr');
-
-        orders.forEach(order => {
-            const timeCell = order.querySelector('td:nth-child(4)'); // Select the time column (assuming 4th column)
-            if (timeCell) {
-                const currentTime = new Date();
-                timeCell.textContent = formatTime(currentTime);
-            }
-        });
-    }
-
-    // Apply current time when the page loads
-    updateOrderTimes();
 
     // Date Filter Functionality
     dateFilter.addEventListener('change', function () {
