@@ -71,15 +71,30 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
-   async function fetchIngredients() {
+async function fetchIngredients() {
     try {
         const response = await fetch("/get_ingredients");
         const data = await response.json();
         if (!Array.isArray(data)) throw new Error("Invalid data format");
 
         dropdown.innerHTML = "";
+
+        // Create a search box
+        const searchBox = document.createElement("input");
+        searchBox.type = "text";
+        searchBox.placeholder = "Search ingredients...";
+        searchBox.classList.add("ingredient-search");
+        searchBox.addEventListener("input", filterIngredients);
+
+        dropdown.appendChild(searchBox); // Add search box at the top
+
+        // Create a container for ingredients
+        const ingredientsContainer = document.createElement("div");
+        ingredientsContainer.classList.add("ingredients-list");
+
         data.forEach(item => {
             const label = document.createElement("label");
+            label.classList.add("ingredient-item");
 
             const checkbox = document.createElement("input");
             checkbox.type = "checkbox";
@@ -88,6 +103,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             const ingredientName = document.createElement("span");
             ingredientName.textContent = item.item;
+            ingredientName.classList.add("ingredient-name");
 
             const quantityInput = document.createElement("input");
             quantityInput.type = "number";
@@ -96,23 +112,19 @@ document.addEventListener("DOMContentLoaded", async () => {
             quantityInput.classList.add("ingredient-quantity");
             quantityInput.addEventListener("input", () => updateSelectedIngredients(null, item.item));
 
-            const itemContainer = document.createElement("div");
-            itemContainer.classList.add("ingredient-item");
-
-            itemContainer.appendChild(checkbox);
-            itemContainer.appendChild(ingredientName);
-            itemContainer.appendChild(quantityInput);
-            label.appendChild(itemContainer);
-
-            dropdown.appendChild(label);
+            label.appendChild(checkbox);
+            label.appendChild(ingredientName);
+            label.appendChild(quantityInput);
+            ingredientsContainer.appendChild(label);
         });
+
+        dropdown.appendChild(ingredientsContainer);
         dropdown.style.display = "none";
     } catch (error) {
         console.error("Error fetching ingredients:", error);
         dropdown.innerHTML = "<p>Error loading ingredients</p>";
     }
 }
-
 
 
    async function fetchIngredientsForEdit(dishId) {
@@ -155,6 +167,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     } catch (error) {
         console.error("Error fetching ingredients:", error);
     }
+}
+
+function filterIngredients(event) {
+    const searchValue = event.target.value.toLowerCase();
+    const ingredientItems = document.querySelectorAll(".ingredient-item");
+
+    ingredientItems.forEach(item => {
+        const ingredientName = item.querySelector(".ingredient-name").textContent.toLowerCase();
+        if (ingredientName.includes(searchValue)) {
+            item.style.display = "flex"; // Show if it matches
+        } else {
+            item.style.display = "none"; // Hide if it doesn’t match
+        }
+    });
 }
 
 

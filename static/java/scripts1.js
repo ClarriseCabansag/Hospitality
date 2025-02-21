@@ -226,11 +226,12 @@ function showSuccessModal(message) {
                     .join(', ');
 
                 menuItem.innerHTML = `
-                    <img src="${imageUrl}" alt="${item.name}" onerror="this.src='/path/to/default-image.jpg';">
-                    <p class="item-name">${item.name}</p>
-                    <p class="ingredients">${formattedIngredients}</p> <!-- Correctly formatted ingredients -->
-                    <span>₱${item.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                `;
+                <img src="${imageUrl}" alt="${item.name}" onerror="this.src='/path/to/default-image.jpg';">
+                <p class="item-name">${item.name}</p>
+                <div class="ingredients" style="display: none;">${formattedIngredients}</div>
+                <span>₱${item.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            `;
+
 
                 container.appendChild(menuItem);
             });
@@ -390,12 +391,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.querySelectorAll('.menu-grid').forEach(menuGrid => {
         menuGrid.addEventListener('click', function (event) {
-            if (event.target.tagName === 'IMG') {
-                const clickedImage = event.target;
-                const menuItem = clickedImage.closest('.menu-item');
-                const itemName = menuItem.querySelector('.item-name').textContent;
-                const itemIngredients = menuItem.querySelector('.ingredients').textContent;
-                const itemPrice = menuItem.querySelector('span').textContent;
+        if (event.target.tagName === 'IMG') {
+            const clickedImage = event.target;
+            const menuItem = clickedImage.closest('.menu-item');
+            const itemName = menuItem.querySelector('.item-name').textContent;
+            const itemIngredients = menuItem.querySelector('.ingredients').textContent; // Keep ingredient data
+            const itemPrice = menuItem.querySelector('span').textContent;
+
 
                 const formattedIngredients = itemIngredients
                     .split(',')
@@ -427,7 +429,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <img src="${clickedImage.src}" alt="${itemName}" class="order-summary-image">
                     <div class="order-item-content">
                         <p class="item-name">${itemName}</p>
-                        <p class="order-ingredients">${formattedIngredients}</p>
+                        <p class="order-ingredients" style="display: none;">${formattedIngredients}</p>
                         <span>${itemPrice}</span>
                     </div>
                 `;

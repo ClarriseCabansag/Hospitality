@@ -15,11 +15,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const cashInputPaymentMethod = document.querySelector('.payment-method .payment-input input');
     const paymentTab = document.getElementById('payment-tab'); // Ensure this tab ID matches your HTML
     const orderTab = document.getElementById('order-tab'); // Ensure this tab ID matches your HTML
-
+    const nameInput = document.querySelector('.discount-summary .input-fields input:nth-child(1)');
+    const idInput = document.querySelector('.discount-summary .input-fields input:nth-child(2)');
     let discountApplied = false;
     let discountType = '';
     const seniorDiscount = 0.20; // 20% discount
-    const pwdDiscount = 0.15; // 15% discount
+    const pwdDiscount = 0.20; // 15% discount
+    const vatRate = 1.12; // VAT divisor
 
     // Function to clear the payment fields
     function clearPaymentFields() {
@@ -75,32 +77,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-   // Handle Cash Add Button
-if (addButton && cashInputPaymentMethod && cashDisplay) {
-    addButton.addEventListener('click', function () {
-        const cashAmount = parseFloat(cashInputPaymentMethod.value) || 0; // Get entered cash amount
-
-        if (cashAmount <= 0) {
-            showErrorModal('Please enter a valid cash amount.');
-            return;
-        }
-
-        // Update the displayed cash in the payment summary
-        cashDisplay.textContent = `₱${cashAmount.toFixed(2)}`;
-
-        // Update the change calculation
-        const totalAmount = parseFloat(totalAmountDisplay.textContent.replace('₱', '').replace(',', '')) || 0;
-        const change = cashAmount - totalAmount;
-
-        changeAmount.textContent = `₱${change.toFixed(2)}`;
-
-        // Clear the cash input field in the payment method
-        cashInputPaymentMethod.value = '';
-
-        // Show success modal
-        showSuccessModal('You have successfully applied the payment!');
-    });
-}
 
 
 // Show Error Modal (Styled Like Image)
@@ -184,6 +160,12 @@ if (confirmPaymentBtn && paymentModal && closeModalButton) {
     }
 
     confirmPaymentBtn.addEventListener('click', function () {
+        // Prevent confirmation if the button is still disabled
+        if (confirmPaymentBtn.disabled) {
+            showErrorModal('Please enter a valid payment before confirming.');
+            return;
+        }
+
         // Collect payment data
         const orderId = document.querySelector('.order-id-value').textContent.trim();
         const subtotal = parseFloat(document.querySelector('.subtotal p:nth-child(2)').textContent.replace('₱', '').replace(',', '')) || 0;
@@ -193,7 +175,7 @@ if (confirmPaymentBtn && paymentModal && closeModalButton) {
         const change = parseFloat(changeAmount.textContent.replace('₱', '').replace(',', '')) || 0;
 
         // Check if a discount has been applied
-        const discountType = document.getElementById('discount-type').textContent.trim() || null;
+        const discountType = document.getElementById('discount-type') ? document.getElementById('discount-type').textContent.trim() : null;
         const discountPercentage = discountApplied ? parseFloat(discountAmountElement.textContent.replace('%', '')) / 100 : null;
 
         // Validate if change is negative
@@ -209,7 +191,7 @@ if (confirmPaymentBtn && paymentModal && closeModalButton) {
 
         // Validate if cash is entered
         if (isNaN(cashReceived) || cashReceived <= 0) {
-            alert('Please enter a valid cash amount.');
+            showErrorModal('Please enter a valid cash amount.');
 
             // Clear the cash input and cash display for correction
             cashInput.value = '';
@@ -238,19 +220,19 @@ if (confirmPaymentBtn && paymentModal && closeModalButton) {
             },
             body: JSON.stringify(paymentData)
         })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                   showSuccessModal('Payment saved successfully!');
-                    showModal();
-                } else {
-                    alert('Failed to save payment. Please try again.');
-                }
-            })
-            .catch(error => {
-                console.error('Error saving payment:', error);
-                alert('An error occurred. Please try again.');
-            });
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showSuccessModal('Payment saved successfully!');
+                showModal();
+            } else {
+                showErrorModal('Failed to save payment. Please try again.');
+            }
+        })
+        .catch(error => {
+            console.error('Error saving payment:', error);
+            showErrorModal('An error occurred. Please try again.');
+        });
     });
 
     closeModalButton.addEventListener('click', function () {
@@ -261,6 +243,41 @@ if (confirmPaymentBtn && paymentModal && closeModalButton) {
         if (event.target === paymentModal) {
             hideModal();
         }
+    });
+}
+
+/// Ensure Confirm Button is Enabled After Adding Cash
+if (addButton && cashInputPaymentMethod && cashDisplay) {
+    addButton.addEventListener('click', function () {
+        const cashAmount = parseFloat(cashInputPaymentMethod.value) || 0;
+
+        if (cashAmount <= 0) {
+            showErrorModal('Please enter a valid cash amount.');
+            return;
+        }
+
+        // Update cash display
+        cashDisplay.textContent = `₱${cashAmount.toFixed(2)}`;
+
+        // Update change calculation
+        const totalAmount = parseFloat(totalAmountDisplay.textContent.replace('₱', '').replace(',', '')) || 0;
+        const change = cashAmount - totalAmount;
+        changeAmount.textContent = `₱${change.toFixed(2)}`;
+
+        // Disable the add button after adding cash
+        addButton.disabled = true;
+        addButton.style.backgroundColor = '#ccc'; // Optional: Change button appearance
+
+        // ✅ Enable confirm button after adding valid cash
+        confirmPaymentBtn.disabled = false;
+        confirmPaymentBtn.style.backgroundColor = '#c8131a'; // Change button to red (active)
+        confirmPaymentBtn.style.cursor = 'pointer';
+
+        // Clear input field
+        cashInputPaymentMethod.value = '';
+
+        // Show success modal
+        showSuccessModal('You have successfully applied the payment!');
     });
 }
 
@@ -330,59 +347,145 @@ if (closeModalButton) {
         });
     }
 
-    // Handle Discount Application
-    if (applyButton) {
-        applyButton.addEventListener('click', function () {
-            if (discountType) {
-                const subtotal = parseFloat(document.querySelector('.subtotal p:nth-child(2)').textContent.replace('₱', '').replace(',', '')) || 0;
-                let discountPercentage = 0;
+// Function to show error alert modal and refresh ONLY for Name & ID errors
+function showAlertMessage(message, shouldRefresh = false) {
+    const modal = document.createElement('div');
+    modal.classList.add('error-modal');
 
-                // Determine the discount percentage based on selected discount type
-                if (discountType === 'Senior Discount') {
-                    discountPercentage = seniorDiscount;
-                } else if (discountType === 'PWD Discount') {
-                    discountPercentage = pwdDiscount;
-                }
+    const modalContent = `
+        <div class="modal-content">
+            <div class="icon">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="red" class="error-icon">
+                    <circle cx="12" cy="12" r="10" fill="none" stroke="red"></circle>
+                    <line x1="9" y1="9" x2="15" y2="15" stroke="red"></line>
+                    <line x1="15" y1="9" x2="9" y2="15" stroke="red"></line>
+                </svg>
+            </div>
+            <h3>Invalid!</h3>
+            <p>${message}</p>
+            <button class="close-btn">Ok</button>
+        </div>
+    `;
+    modal.innerHTML = modalContent;
+    document.body.appendChild(modal);
 
-                if (discountPercentage === 0) {
-                    showErrorModal('Please select a discount type.');
-                    return;
-                }
+    // Close modal and refresh page only if needed
+    modal.querySelector('.close-btn').addEventListener('click', function () {
+        modal.remove();
+        if (shouldRefresh) {
+            location.reload(); // Refresh the page if required
+        }
+    });
 
-                // Calculate the new total with the discount
-                const discountAmount = subtotal * discountPercentage;
-                const newTotal = subtotal - discountAmount + (subtotal * 0.05); // Subtotal - discount + tax
-
-                // Display the percentage and new total
-                discountSection.style.display = 'flex'; // Show the discount section
-                discountAmountElement.textContent = `${discountPercentage * 100}%`; // Show the discount percentage
-                totalAmountDisplay.textContent = `₱${newTotal.toFixed(2)}`; // Show new total amount
-
-                // Update the discount type display
-                const discountTypeElement = document.getElementById('discount-type');
-                discountTypeElement.textContent = ` ${discountType}`;
-
-                discountApplied = true;
-
-                // Clear the discount input fields after applying the discount
-                const discountInputs = document.querySelectorAll('.discount-summary .input-fields input');
-                discountInputs.forEach(input => {
-                    input.value = ''; // Clear input fields
-                });
-
-                // Reset discount type and buttons
-                discountType = '';
-                discountButtons.forEach(btn => {
-                    btn.classList.remove('active');
-                    btn.style.backgroundColor = '#f1f1f1'; // Default gray
-                    btn.style.color = 'black';
-                });
-            } else {
-                showErrorModal('Please select a discount type.');
+    // Close modal and refresh page only if needed when clicking outside
+    modal.addEventListener('click', function (e) {
+        if (e.target === modal) {
+            modal.remove();
+            if (shouldRefresh) {
+                location.reload(); // Refresh the page if required
             }
-        });
+        }
+    });
+}
+
+
+
+function validateDiscountInputs() {
+    const namePattern = /^[A-Za-z,\s]+$/; // Only letters, commas, and spaces allowed
+    const idPattern = /^[0-9]{1,12}$/; // Only numbers, 1-12 digits
+
+    const nameValue = nameInput.value.trim();
+    const idValue = idInput.value.trim();
+
+    if (nameValue === "" || idValue === "") {
+        showAlertMessage("Please fill in all fields!", true); // Refresh required
+        return false;
     }
+
+    if (!namePattern.test(nameValue)) {
+        showAlertMessage("Invalid Name: Only letters and commas are allowed.", true); // Refresh required
+        return false;
+    }
+
+    if (!idPattern.test(idValue)) {
+        showAlertMessage("Invalid ID Number: Only numbers (1-12 digits) are allowed.", true); // Refresh required
+        return false;
+    }
+
+    return true;
+}
+
+
+
+if (applyButton) {
+    applyButton.addEventListener('click', function () {
+        if (!validateDiscountInputs()) {
+            return; // Stop if inputs are invalid (refresh will happen if needed)
+        }
+
+        if (!discountType) {
+            showAlertMessage("Please select a discount type."); // No refresh for discount type error
+            return;
+        }
+
+        const totalAmount = parseFloat(totalAmountDisplay.textContent.replace('₱', '').replace(',', '')) || 0;
+        let discountPercentage = 0;
+
+        // ✅ Compute VAT-Exempt Sales (Sub-total)
+        const subTotal = totalAmount / 1.12;
+        const vatAmount = totalAmount - subTotal; // VAT amount
+        const discountableAmount = subTotal; // Discount applies to sub-total
+
+        // Set correct discount percentage
+        if (discountType === 'Senior Discount') {
+            discountPercentage = seniorDiscount;
+        } else if (discountType === 'PWD Discount') {
+            discountPercentage = pwdDiscount;
+        }
+
+        if (discountPercentage === 0) {
+            showAlertMessage('Please select a discount type.');
+            return;
+        }
+
+        // ✅ Compute Discount
+        const discountAmount = discountableAmount * discountPercentage;
+        const amountDue = subTotal - discountAmount; // Final amount after discount
+
+        // Update UI
+        document.getElementById('discountable-value').textContent = `₱${discountableAmount.toFixed(2)}`;
+        document.getElementById('discount-amount').textContent = `${(discountPercentage * 100).toFixed(0)}%`;
+        document.getElementById('discount-detail').textContent = `-₱${discountAmount.toFixed(2)}`;
+        document.getElementById('total-amount').textContent = `₱${amountDue.toFixed(2)}`;
+        document.querySelector('.discountable-amount').style.display = 'flex';
+        document.querySelector('.discount-section').style.display = 'flex';
+
+        // ✅ Update Discount Info
+        document.getElementById('applied-discount-info').innerHTML = `
+            <p><strong>Discount Type:</strong> ${discountType}</p>
+            <p><strong>Name:</strong> ${nameInput.value}</p>
+            <p><strong>ID Number:</strong> ${idInput.value}</p>
+        `;
+        document.getElementById('applied-discount-info').style.display = 'block';
+
+        discountApplied = true;
+    });
+
+}
+
+
 });
+
+// Restrict Name Input (Only Letters & Comma)
+nameInput.addEventListener("input", function () {
+    this.value = this.value.replace(/[^A-Za-z,\s]/g, "");
+});
+
+// Restrict ID Input (Only Numbers, Max 12 Digits)
+idInput.addEventListener("input", function () {
+    this.value = this.value.replace(/\D/g, "").slice(0, 12);
+});
+
 
 // JavaScript to validate cash input without resetting the field
 document.getElementById("cash-input").addEventListener("input", function(event) {
@@ -403,6 +506,8 @@ document.getElementById("cash-input").addEventListener("input", function(event) 
     if (validValue !== value) {
         event.target.value = validValue;
     }
+
+
 });
 
 
