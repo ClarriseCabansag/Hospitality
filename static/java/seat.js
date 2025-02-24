@@ -43,8 +43,8 @@ document.addEventListener('DOMContentLoaded', function () {
         occupiedModal.innerHTML = `
             <div class="occupied-popup-content">
                 <p>This table is occupied. What would you like to do?</p>
+                <br>
                 <button id="proceedToPayment">Proceed to Payment</button>
-                <button id="kitchenReceipt">Kitchen Receipt</button>
                 <button id="cancelAction">Cancel</button>
             </div>
         `;
