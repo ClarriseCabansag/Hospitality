@@ -255,29 +255,45 @@ dropdown.addEventListener("click", (e) => {
     const name = document.getElementById("dishName").value.trim();
     const price = document.getElementById("price").value.trim();
     const ingredients = Array.from(dropdown.querySelectorAll("input:checked"));
-    const imageUpload = document.getElementById("imageUpload").files[0]; // Get image file
+    const imageUpload = document.getElementById("imageUpload").files[0];
 
     if (!category || !name || !price || ingredients.length === 0 || !imageUpload) {
         alert("All fields, including an image, are required!");
         return;
     }
 
-    const formData = new FormData();
-    formData.append("category", category);
-    formData.append("name", name);
-    formData.append("price", price);
-    formData.append("image", imageUpload); // Ensure image is included
-
-    // Collect selected ingredients with quantity
-    const selectedIngredients = ingredients.map(cb => {
-        const quantityInput = cb.closest(".ingredient-item").querySelector(".ingredient-quantity");
-        const quantity = quantityInput ? quantityInput.value : "1"; // Default to 1
-        return `${quantity} pcs ${cb.value}`;
-    });
-
-    selectedIngredients.forEach(ingredient => formData.append("ingredients", ingredient));
-
+    // Fetch existing dishes
     try {
+        const dishesResponse = await fetch("/get_dishes");
+        const dishes = await dishesResponse.json();
+
+        // Check for duplicate name (case-insensitive)
+        const isDuplicate = dishes.some(dish => dish.name.toLowerCase() === name.toLowerCase());
+
+        if (isDuplicate) {
+            alert("Dish name already exists! Please choose a different name.");
+            modal.style.display = "none"; // Close modal
+            form.reset();
+            selectedText.textContent = "Select Ingredients";
+            fetchAndDisplayDishes(); // Refresh dishes
+            return;
+        }
+
+        // Proceed with dish addition if no duplicate
+        const formData = new FormData();
+        formData.append("category", category);
+        formData.append("name", name);
+        formData.append("price", price);
+        formData.append("image", imageUpload);
+
+        const selectedIngredients = ingredients.map(cb => {
+            const quantityInput = cb.closest(".ingredient-item").querySelector(".ingredient-quantity");
+            const quantity = quantityInput ? quantityInput.value : "1";
+            return `${quantity} pcs ${cb.value}`;
+        });
+
+        selectedIngredients.forEach(ingredient => formData.append("ingredients", ingredient));
+
         const response = await fetch("/add_dish", {
             method: "POST",
             body: formData
@@ -294,9 +310,10 @@ dropdown.addEventListener("click", (e) => {
             alert(`Error: ${result.error}`);
         }
     } catch (error) {
-        console.error("Error adding dish:", error);
+        console.error("Error checking for duplicate dishes:", error);
     }
 });
+
 
     // Handle form submission to edit a dish
 editForm.addEventListener("submit", async (e) => {
