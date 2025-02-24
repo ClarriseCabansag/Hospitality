@@ -369,8 +369,6 @@ if (discountButtons.length > 0) {
 }
 
 
-
-
 // Function to show error alert modal and refresh ONLY for Name & ID errors
 function showAlertMessage(message, shouldRefresh = false) {
     const modal = document.createElement('div');
