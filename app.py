@@ -247,7 +247,6 @@ def get_open_tills():
                 'date': till.date,
                 'cashier_id': till.cashier_id,
                 'cashier_username': till.cashier_username,
-                'close_time': till.close_time
             }
             for till in tills
         ]
