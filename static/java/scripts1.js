@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const openTillAmount = document.getElementById("openTillAmount");
     const tillAmountDisplay = document.querySelector(".till-amount-display");
     const keypadButtons = document.querySelectorAll(".keypad button");
-    const deleteButton = document.querySelector('button i.fas.fa-backspace'); // Target the icon inside the button
+    const deleteButton = document.querySelector('button i.fas.fa-backspace');
 
     let tillAmount = "";
 
@@ -10,11 +10,7 @@ document.addEventListener("DOMContentLoaded", function () {
     fetch('/check_till_status')
         .then(response => response.json())
         .then(data => {
-            if (data.till_opened) {
-                openTillAmount.style.display = "none";
-            } else {
-                openTillAmount.style.display = "block";
-            }
+            openTillAmount.style.display = data.till_opened ? "none" : "block";
         })
         .catch(error => console.error('Error:', error));
 
@@ -22,55 +18,35 @@ document.addEventListener("DOMContentLoaded", function () {
     keypadButtons.forEach(button => {
         button.addEventListener("click", function () {
             const value = this.textContent;
-            if (value !== "⌫") {
-                tillAmount += value; // Add the number to tillAmount
-            } else {
-                tillAmount = tillAmount.slice(0, -1);  // Remove last character
-            }
+            tillAmount = value !== "⌫" ? tillAmount + value : tillAmount.slice(0, -1);
             tillAmountDisplay.value = tillAmount;
         });
     });
 
-    // Handle delete via custom delete button (backspace icon button)
+    // Handle delete via custom delete button
     if (deleteButton) {
         deleteButton.closest('button').addEventListener('click', function() {
-            console.log('Delete button clicked');
-            tillAmount = tillAmount.slice(0, -1); // Remove last character when custom delete button is clicked
-            tillAmountDisplay.value = tillAmount;  // Update the display
+            tillAmount = tillAmount.slice(0, -1);
+            tillAmountDisplay.value = tillAmount;
         });
-    } else {
-        console.log('Delete button not found');
     }
 
     // Handle delete via Backspace key
     tillAmountDisplay.addEventListener("keydown", function (event) {
         if (event.key === "Backspace") {
-            tillAmount = tillAmount.slice(0, -1);  // Remove last character when backspace is pressed
-            tillAmountDisplay.value = tillAmount;  // Update the display
-            console.log('Backspace pressed, tillAmount:', tillAmount); // Debugging line
+            tillAmount = tillAmount.slice(0, -1);
+            tillAmountDisplay.value = tillAmount;
         }
     });
 
     // Clean the input field to allow only numbers
     function validateInput(value) {
-        return value.replace(/[^0-9]/g, '');  // Keep only numeric values
+        return value.replace(/[^0-9]/g, '');
     }
 
     tillAmountDisplay.addEventListener("input", function () {
-        this.value = validateInput(this.value);  // Clean input field
+        this.value = validateInput(this.value);
     });
-
-    // Capture and send the current time in 12-hour format (AM/PM)
-    function formatTimeTo12Hour(time) {
-        let date = new Date(time);
-        let hours = date.getHours();
-        let minutes = date.getMinutes();
-        let ampm = hours >= 12 ? 'PM' : 'AM';
-        hours = hours % 12;
-        hours = hours ? hours : 12; // the hour '0' should be '12'
-        minutes = minutes < 10 ? '0' + minutes : minutes;
-        return hours + ':' + minutes + ' ' + ampm;
-    }
 
     document.querySelector('.btn-open-drawer').addEventListener('click', function () {
         const tillAmountInput = document.querySelector('.till-amount-display');
@@ -81,101 +57,68 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        const currentTime = new Date();
-        const formattedTime = formatTimeTo12Hour(currentTime); // Format the time to AM/PM format
-
         // Send data to Flask API
         fetch('/open_till', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ amount: tillAmount, time: formattedTime })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ amount: tillAmount }) // Removed "time" field
         })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    alert(data.error);
-                } else {
-                    // Replace alert with the success modal
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+            } else {
                 showSuccessModal('Till opened with amount: ₱' + data.amount);
+                document.getElementById('openTillAmount').style.display = 'none';
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    });
 
-                    document.getElementById('openTillAmount').style.display = 'none'; // Close the modal
-                }
-            })
-            .catch(error => console.error('Error:', error));
-              // Show Error Modal (Styled Like Image)
-function showErrorModal(message) {
-    const modal = document.createElement('div');
-    modal.classList.add('error-modal');
-
-    const modalContent = `
-        <div class="modal-content">
-            <div class="icon">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="red" class="error-icon">
-                    <circle cx="12" cy="12" r="10" fill="none" stroke="red"></circle>
-                    <line x1="9" y1="9" x2="15" y2="15" stroke="red"></line>
-                    <line x1="15" y1="9" x2="9" y2="15" stroke="red"></line>
-                </svg>
+    function showErrorModal(message) {
+        const modal = document.createElement('div');
+        modal.classList.add('error-modal');
+        modal.innerHTML = `
+            <div class="modal-content">
+                <div class="icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="red" class="error-icon">
+                        <circle cx="12" cy="12" r="10" stroke="red"></circle>
+                        <line x1="9" y1="9" x2="15" y2="15" stroke="red"></line>
+                        <line x1="15" y1="9" x2="9" y2="15" stroke="red"></line>
+                    </svg>
+                </div>
+                <h3>Invalid!</h3>
+                <p>${message}</p>
+                <button class="close-btn">Ok</button>
             </div>
-            <h3>Invalid!</h3>
-            <p>${message}</p>
-            <button class="close-btn">Ok</button>
-        </div>
-    `;
-    modal.innerHTML = modalContent;
-    document.body.appendChild(modal);
+        `;
+        document.body.appendChild(modal);
+        modal.querySelector('.close-btn').addEventListener('click', () => modal.remove());
+        modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+    }
 
-    // Close the modal
-    const closeBtn = modal.querySelector('.close-btn');
-    closeBtn.addEventListener('click', function () {
-        modal.remove();
-    });
-
-    // Close modal when clicking outside of it
-    modal.addEventListener('click', function (e) {
-        if (e.target === modal) {
-            modal.remove();
-        }
-    });
-}
-
-function showSuccessModal(message) {
-    const modal = document.createElement('div');
-    modal.classList.add('success-modal'); // Custom styling class
-
-    const modalContent = `
-        <div class="modal-content">
-            <div class="icon">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="green" class="success-icon">
-                    <circle cx="12" cy="12" r="10" fill="none" stroke="green"></circle>
-                    <path d="M9 12l2 2 4-4" stroke="green" stroke-width="2"></path>
-                </svg>
+    function showSuccessModal(message) {
+        const modal = document.createElement('div');
+        modal.classList.add('success-modal');
+        modal.innerHTML = `
+            <div class="modal-content">
+                <div class="icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="green" class="success-icon">
+                        <circle cx="12" cy="12" r="10" stroke="green"></circle>
+                        <path d="M9 12l2 2 4-4" stroke="green" stroke-width="2"></path>
+                    </svg>
+                </div>
+                <h3> Till Amount Opened!</h3>
+                <p>${message}</p>
+                <button class="close-btn">Ok</button>
             </div>
-            <h3> Till Amount Opened!</h3>
-            <p>${message}</p>
-            <button class="close-btn">Ok</button>
-        </div>
-    `;
-    modal.innerHTML = modalContent;
-    document.body.appendChild(modal);
-
-    // Close the modal
-    const closeBtn = modal.querySelector('.close-btn');
-    closeBtn.addEventListener('click', function () {
-        modal.remove();
-    });
-
-    // Close modal when clicking outside of it
-    modal.addEventListener('click', function (e) {
-        if (e.target === modal) {
-            modal.remove();
-        }
-    });
-}
-    });
-
+        `;
+        document.body.appendChild(modal);
+        modal.querySelector('.close-btn').addEventListener('click', () => modal.remove());
+        modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+    }
 });
+
 
 
     //menu.js//
