@@ -219,31 +219,28 @@ def open_till():
 def get_open_tills():
     try:
         # Query parameters
-        date = request.args.get('date')  # Filter by date (optional)
-        cashier_id = request.args.get('cashier_id')  # Filter by cashier_id (optional)
+        date = request.args.get('date')
+        cashier_id = request.args.get('cashier_id')
 
         # Base query
         query = OpenTill.query
 
-        # Apply filters if provided
         if date:
             query = query.filter_by(date=date)
         if cashier_id:
             query = query.filter_by(cashier_id=cashier_id)
 
-        # Execute query and fetch results
+        # Fetch results
         tills = query.all()
 
-        # If no records are found
         if not tills:
             return jsonify({'message': 'No till records found'}), 404
 
-        # Prepare response
+        # Prepare response (Removed 'time' field)
         till_list = [
             {
                 'id': till.id,
                 'amount': till.amount,
-                'time': till.time,
                 'date': till.date,
                 'cashier_id': till.cashier_id,
                 'cashier_username': till.cashier_username,
@@ -261,7 +258,6 @@ def get_open_tills():
 def check_till_status():
     till_opened = session.get('till_opened', False)
     return jsonify({'till_opened': till_opened})
-
 
 @app.route('/save_order', methods=['POST'])
 def save_order():
